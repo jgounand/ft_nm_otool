@@ -15,6 +15,7 @@
 typedef struct s_inf_header
 {
 	bool	type;
+	bool	swap;
 	bool	cpu;
 	bool	error;
 }		t_inf_header;

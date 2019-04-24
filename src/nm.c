@@ -10,6 +10,20 @@ void	print_output(int nsyms, int symoff, int stroff, char *ptr)
 	stringtable =(void *) ptr + stroff;
 	for (i =0; i <nsyms; ++i)
 	{
+		if ((array[i].n_type & N_TYPE) ==  N_UNDF)
+			printf("TYPE N_UNDF ");
+		else if ((array[i].n_type & N_TYPE) ==  N_ABS)
+			printf("TYPE N_ABS ");
+		else if ((array[i].n_type & N_TYPE) ==  N_SECT)
+			printf("TYPE N_SECT %d ", array[i].n_sect);
+		else if ((array[i].n_type & N_TYPE) ==  N_PBUD)
+			printf("TYPE N_PBUD ");
+		else if ((array[i].n_type & N_TYPE) ==  N_INDR)
+			printf("TYPE N_INDR ");
+		else
+			printf("error ");
+		if ((array[i].n_type & N_EXT))
+			printf(" global ");
 		printf("%s\n", stringtable + array[i].n_un.n_strx);
 	}
 }
@@ -58,7 +72,7 @@ int	place_for_header(size_t size)
 }
 
 
-bool is_match_header(uint32_t	magic_number, size_t size)
+short is_match_header(uint32_t	magic_number, size_t size)
 {
 	int	_64;
 	int	_32;
@@ -74,7 +88,8 @@ bool is_match_header(uint32_t	magic_number, size_t size)
 	}
 	if (!_32 && !_64)
 		return (0);
-	if (_32)
+	printf("type _32 %d _64 %d\n",_32,_64);
+	if (_32 == 1)
 		return (1);
 	else
 		return (2);
@@ -101,8 +116,9 @@ t_inf_header	get_header(char *ptr, size_t size)
 		inf_header.error = 1;
 		return (inf_header);
 	}
+	printf("i %d\n",i);
 	inf_header.type = i - 1;
-	inf_header.cpu = should_swap_bytes(magic_number);
+	inf_header.swap = should_swap_bytes(magic_number);
 	return (inf_header);
 }
 
@@ -113,17 +129,20 @@ t_inf_header	inf_header;
 
 	if ((inf_header = get_header(ptr,size)).error == 1)
 		return ;
-	if (inf_header.cpu == 1)
+	if (inf_header.type == 1)
 	{
 	//need to swap the header
 	}
 	if (inf_header.type == 0)
 	{
+printf("enter hanfler_32\n");
 	//handle_32
 	}
 	else
 	{
-	handle_64(ptr);
+
+printf("enter hanfler_64\n");
+		handle_64(ptr);
 	}
 }
 
