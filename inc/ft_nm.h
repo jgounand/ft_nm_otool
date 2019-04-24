@@ -20,4 +20,11 @@ typedef struct s_inf_header
 	bool	error;
 }		t_inf_header;
 
+typedef struct s_symbol
+{	
+	char	*sym_name;
+	char	sym_type;
+	uint64_t n_value;
+}		t_symbol;
+
 #endif

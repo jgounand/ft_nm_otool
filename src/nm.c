@@ -1,31 +1,74 @@
 #include "../inc/ft_nm.h"
 
+int	sort_lst_nm(void	*content, void	*content_next)
+{
+	t_symbol *tmp;
+	t_symbol *tmp2;
+	int		ret;
+
+	tmp = content;
+	tmp2 = content_next;
+	ret = ft_strcmp(tmp->sym_name, tmp2->sym_name);
+	return(ret > 0? 1 : 0);
+}
+
+void	show_list(t_list *lst)
+{
+	t_symbol	*content;
+
+	content = lst->content;
+	if (content->n_value)
+	printf("0x%llx\t%c %s\n",content->n_value,content->sym_type, content->sym_name);
+	else
+	printf("\t\t%c %s\n",content->sym_type, content->sym_name);
+}
+
+char	give_symbole_type(uint8_t n_type)
+{
+	if ((n_type & N_TYPE) ==  N_UNDF)
+		return ('U');
+	else if ((n_type & N_TYPE) ==  N_ABS)
+		return ('A');
+	else if ((n_type & N_TYPE) ==  N_SECT)
+		return ('T');
+	else if ((n_type & N_TYPE) ==  N_PBUD)
+		return ('X');
+	else if ((n_type & N_TYPE) ==  N_INDR)
+		return ('X');
+	else
+			printf("error ");
+	return('0');
+}
+
 void	print_output(int nsyms, int symoff, int stroff, char *ptr)
 {
 	int				i;
 	char			*stringtable;
 	struct nlist_64	*array;
+	t_list	*new_lst;
+	t_symbol *new;
 
 	array = (void *)ptr + symoff;
 	stringtable =(void *) ptr + stroff;
+	new_lst = NULL;
 	for (i =0; i <nsyms; ++i)
 	{
-		if ((array[i].n_type & N_TYPE) ==  N_UNDF)
-			printf("TYPE N_UNDF ");
-		else if ((array[i].n_type & N_TYPE) ==  N_ABS)
-			printf("TYPE N_ABS ");
-		else if ((array[i].n_type & N_TYPE) ==  N_SECT)
-			printf("TYPE N_SECT %d ", array[i].n_sect);
-		else if ((array[i].n_type & N_TYPE) ==  N_PBUD)
-			printf("TYPE N_PBUD ");
-		else if ((array[i].n_type & N_TYPE) ==  N_INDR)
-			printf("TYPE N_INDR ");
-		else
-			printf("error ");
-		if ((array[i].n_type & N_EXT))
-			printf(" global ");
-		printf("%s\n", stringtable + array[i].n_un.n_strx);
+	if(array[i].n_type & N_STAB) {
+				continue;
+			}
+	new = malloc(sizeof(t_symbol));
+		printf("%s 0x%llx\n", stringtable + array[i].n_un.n_strx, array[i].n_value);
+		new->n_value = array[i].n_value;
+		new->sym_type = give_symbole_type(array[i].n_type);
+		new->sym_name = stringtable + array[i].n_un.n_strx;
+		new->n_value = array[i].n_value;
+		if (!(array[i].n_type & N_EXT))
+			new->sym_type += 40;
+	ft_lstadd(&new_lst,ft_lstnew(new,sizeof(t_symbol)));
 	}
+	ft_lstsort(&new_lst, sort_lst_nm);
+	printf("nbr node %d\n",ft_lstcmp(&new_lst));
+	ft_lstiter(new_lst,show_list);
 }
 
 
