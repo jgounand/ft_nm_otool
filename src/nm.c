@@ -18,9 +18,9 @@ void	show_list(t_list *lst)
 
 	content = lst->content;
 	if (content->n_value)
-	printf("0x%llx\t%c %s\n",content->n_value,content->sym_type, content->sym_name);
+		printf("0x%llx\t%c %s\n",content->n_value,content->sym_type, content->sym_name);
 	else
-	printf("\t\t%c %s\n",content->sym_type, content->sym_name);
+		printf("\t\t%c %s\n",content->sym_type, content->sym_name);
 }
 
 char	give_symbole_type(uint8_t n_type)
@@ -30,49 +30,58 @@ char	give_symbole_type(uint8_t n_type)
 	else if ((n_type & N_TYPE) ==  N_ABS)
 		return ('A');
 	else if ((n_type & N_TYPE) ==  N_SECT)
+	{
 		return ('T');
+	}
 	else if ((n_type & N_TYPE) ==  N_PBUD)
+	{
+		printf("JE ne sais pas quelle lettre mettre\n");
 		return ('X');
+	}
 	else if ((n_type & N_TYPE) ==  N_INDR)
+	{
+		printf("JE ne sais pas quelle lettre mettre\n");
 		return ('X');
+	}
 	else
-			printf("error ");
+		printf("error ");
 	return('0');
 }
 
-void	print_output(int nsyms, int symoff, int stroff, char *ptr)
+void	print_output(int nsyms, int symoff, int stroff, char *ptr, size_t size)
 {
 	int				i;
 	char			*stringtable;
 	struct nlist_64	*array;
 	t_list	*new_lst;
-	t_symbol *new;
+	t_symbol new;
 
 	array = (void *)ptr + symoff;
 	stringtable =(void *) ptr + stroff;
+	if (addr_outof_range(ptr,size,array) || addr_outof_range(ptr,size,stringtable))
+	return ;
 	new_lst = NULL;
 	for (i =0; i <nsyms; ++i)
 	{
-	if(array[i].n_type & N_STAB) {
-				continue;
-			}
-	new = malloc(sizeof(t_symbol));
-		printf("%s 0x%llx\n", stringtable + array[i].n_un.n_strx, array[i].n_value);
-		new->n_value = array[i].n_value;
-		new->sym_type = give_symbole_type(array[i].n_type);
-		new->sym_name = stringtable + array[i].n_un.n_strx;
-		new->n_value = array[i].n_value;
+	if (addr_outof_range(ptr,size,(void *)&array[i] + sizeof(struct nlist_64)))
+	return ;
+		if(array[i].n_type & N_STAB) {
+			continue;
+		}
+		new.n_value = array[i].n_value;
+		new.sym_type = give_symbole_type(array[i].n_type);
+		if (new.sym_type == 'T' && array[i].n_sect != 1)
+			new.sym_type = 'S';
+		new.sym_name = stringtable + array[i].n_un.n_strx;
+		new.n_value = array[i].n_value;
 		if (!(array[i].n_type & N_EXT))
-			new->sym_type += 40;
-	ft_lstadd(&new_lst,ft_lstnew(new,sizeof(t_symbol)));
+			new.sym_type += 40;
+		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 	}
 	ft_lstsort(&new_lst, sort_lst_nm);
-	printf("nbr node %d\n",ft_lstcmp(&new_lst));
 	ft_lstiter(new_lst,show_list);
 }
-
-
-void	handle_64(char	*ptr)
+int	handle_64(char	*ptr,size_t size)
 {
 	int						ncmds;
 	int						i;
@@ -84,26 +93,48 @@ void	handle_64(char	*ptr)
 	header = (struct mach_header_64 *)ptr;
 	ncmds = header->ncmds;
 	lc = (void *)ptr + sizeof(*header);
+	if (addr_outof_range(ptr,size,lc + sizeof(lc)))
+		return (1);
 	for (i = 0; i <ncmds; ++i)
 	{
 		if (lc->cmd == LC_SYMTAB)
 		{
 			sym = (struct symtab_command *) lc;
-			print_output(sym->nsyms, sym->symoff, sym->stroff,ptr);
+			if (addr_outof_range(ptr,size,sym + sizeof(sym)))
+				return (1);
+			print_output(sym->nsyms, sym->symoff, sym->stroff,ptr,size);
 			break;
 		}
 		lc = (void *) lc + lc->cmdsize;
 	}
+	return (0);
 }
+
+bool addr_outof_range(void *start, size_t size, void *ptr)
+{
+	if (ptr >= start && ptr <= start + size)
+		return (0);
+	return (1);
+}
+
 int is_magic_64(uint32_t magic) {
-  return magic == MH_MAGIC_64 || magic == MH_CIGAM_64;
+	return magic == MH_MAGIC_64 || magic == MH_CIGAM_64;
 }
 int is_magic_32(uint32_t magic) {
-  return magic == MH_MAGIC || magic == MH_CIGAM;
+	return magic == MH_MAGIC || magic == MH_CIGAM;
+}
+int is_magic_fat(unsigned long magic) {
+	return magic == FAT_MAGIC || magic == FAT_CIGAM;
+}
+int is_magic_ar(char *magic) {
+	if (ft_strnstr(magic, ARMAG, SARMAG))
+		return (1);
+	return (0);
 }
 int should_swap_bytes(uint32_t magic) {
-  return magic == MH_CIGAM || magic == MH_CIGAM_64;
+	return magic == MH_CIGAM || magic == MH_CIGAM_64;
 }
+
 
 int	place_for_header(size_t size)
 {
@@ -115,80 +146,90 @@ int	place_for_header(size_t size)
 }
 
 
-short is_match_header(uint32_t	magic_number, size_t size)
+t_inf_header is_match_header(uint32_t	magic_number, size_t size)
 {
-	int	_64;
-	int	_32;
+	bool	_64;
+	bool	_32;
+	t_inf_header inf_header;
+	short	size_header;
 
 	_64 = 0;
 	_32 = 0;
-	if (place_for_header(size) == 1)
+	ft_bzero((void *)&inf_header, sizeof(t_inf_header));
+	if ((size_header = place_for_header(size)) == 0)
+	{
+		return (inf_header);
+	}
+	if (size_header == 1)
 		_32 = is_magic_32(magic_number);
 	else
 	{
 		_32 = is_magic_32(magic_number);
 		_64 = is_magic_64(magic_number);
 	}
-	if (!_32 && !_64)
-		return (0);
-	printf("type _32 %d _64 %d\n",_32,_64);
 	if (_32 == 1)
-		return (1);
+		inf_header.type = 1;
 	else
-		return (2);
+		inf_header.type = 2;
+	return (inf_header);
 }
 
-t_inf_header	get_header(char *ptr, size_t size)
+t_inf_header	get_type(char *ptr, size_t size)
 {
 	t_inf_header	inf_header;
-	short			i;
+	t_inf_header	tmp;
 	uint32_t	magic_number;
 
 	magic_number = *(int *)ptr;
 	ft_bzero(&inf_header, sizeof(t_inf_header));
-	if ((i = place_for_header(size)) == 0)
+	if (size > 0 && is_magic_fat(magic_number)) // check place
+		inf_header.type = 3;
+	else if (size >= SARMAG && is_magic_ar(ptr))
+		inf_header.type = 4;
+	else if ((tmp = is_match_header(magic_number,size)).type != 0)
+		inf_header.type = tmp.type;
+	else
 	{
-		ft_putstr_fd("Error not the size for header\n",2);
+		ft_putstr_fd("Error type\n",2);
 		inf_header.error = 1;
-		return (inf_header);
 	}
-	if ((i = is_match_header(magic_number,size)) == 0)
-	{
-		
-		ft_putstr_fd("Error magic number\n",2);
-		inf_header.error = 1;
-		return (inf_header);
-	}
-	printf("i %d\n",i);
-	inf_header.type = i - 1;
-	inf_header.swap = should_swap_bytes(magic_number);
 	return (inf_header);
 }
 
 
-void	nm(char *ptr,size_t size)
+int	nm(char *ptr,size_t size)
 {
-t_inf_header	inf_header;
+	t_inf_header	inf_header;
 
-	if ((inf_header = get_header(ptr,size)).error == 1)
-		return ;
+	if ((inf_header = get_type(ptr,size)).error == 1)
+		return (1);
+	if (should_swap_bytes(*(int *)ptr))
+	{
+		inf_header.swap = 1;
+		printf("should swap header\n");
+		//need to swap the header
+	}
 	if (inf_header.type == 1)
 	{
-	//need to swap the header
+		printf("enter hanfler_32\n");
+		//handle_32
 	}
-	if (inf_header.type == 0)
+	else if (inf_header.type == 2)
 	{
-printf("enter hanfler_32\n");
-	//handle_32
+		printf("enter hanfler_64\n");
+		return (handle_64(ptr,size));
 	}
-	else
+	else if (inf_header.type == 3)
 	{
+		printf("enter handle_FAT\n");
 
-printf("enter hanfler_64\n");
-		handle_64(ptr);
 	}
+	else if (inf_header.type == 4)
+	{
+		printf("enter handle_ar\n");
+	}
+	return (0);
 }
-
 
 int	main(int ac, char **av)
 {
@@ -203,23 +244,25 @@ int	main(int ac, char **av)
 	}
 	if ((fd = open(av[1], O_RDONLY)) < 0)
 	{
-	return (EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
 	if (fstat(fd,&buf) <0)
 	{
-	return (EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
 	if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
 	{
 		printf("ERROR mmap !");
-	return (EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
-	nm(ptr,buf.st_size);
+	int i = nm(ptr,buf.st_size);
 	if (munmap(ptr, buf.st_size) < 0)
 	{
 		printf("ERROR munmap !");
-	return (EXIT_FAILURE);
+		return (EXIT_FAILURE);
 
 	}
+	if (i)
+		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }
