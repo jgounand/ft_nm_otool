@@ -23,7 +23,7 @@ void	show_list(t_list *lst)
 		printf("\t\t%c %s\n",content->sym_type, content->sym_name);
 }
 
-char	give_symbole_type(uint8_t n_type)
+char	give_symbole_type(uint8_t n_type, uint8_t n_sect)
 {
 	if ((n_type & N_TYPE) ==  N_UNDF)
 		return ('U');
@@ -31,7 +31,17 @@ char	give_symbole_type(uint8_t n_type)
 		return ('A');
 	else if ((n_type & N_TYPE) ==  N_SECT)
 	{
-		return ('T');
+		if (n_sect == 1)
+			return ('T');
+		else if (n_sect == 6 || n_sect == 15 || n_sect == 26 || n_sect == 18 || n_sect == 13)
+			return ('S');
+		else if (n_sect == 11 || n_sect == 25)
+			return ('S');
+		else if (n_sect == 21)
+			return ('U');
+			else if (n_sect == 14)
+			return ('B');
+		return ('W');
 	}
 	else if ((n_type & N_TYPE) ==  N_PBUD)
 	{
@@ -69,13 +79,54 @@ void	print_output(int nsyms, int symoff, int stroff, char *ptr, size_t size)
 			continue;
 		}
 		new.n_value = array[i].n_value;
-		new.sym_type = give_symbole_type(array[i].n_type);
-		if (new.sym_type == 'T' && array[i].n_sect != 1)
-			new.sym_type = 'S';
+		new.sym_type = give_symbole_type(array[i].n_type, array[i].n_sect);
 		new.sym_name = stringtable + array[i].n_un.n_strx;
 		new.n_value = array[i].n_value;
 		if (!(array[i].n_type & N_EXT))
-			new.sym_type += 40;
+			new.sym_type += 32;
+		if (new.sym_type == 'W' || new.sym_type == 'w')
+		{
+			printf("%s %c %d\n",new.sym_name, new.sym_type,array[i].n_sect);
+			exit (2);
+		}
+
+		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
+	}
+;
+	ft_lstsort(&new_lst, sort_lst_nm);
+	ft_lstiter(new_lst,show_list);
+}
+void	print_output_32(int nsyms, int symoff, int stroff, char *ptr, size_t size)
+{
+	int				i;
+	char			*stringtable;
+	struct nlist	*array;
+	t_list	*new_lst;
+	t_symbol new;
+
+	array = (void *)ptr + symoff;
+	stringtable =(void *) ptr + stroff;
+	if (addr_outof_range(ptr,size,array) || addr_outof_range(ptr,size,stringtable))
+	return ;
+	new_lst = NULL;
+	for (i =0; i <nsyms; ++i)
+	{
+	if (addr_outof_range(ptr,size,(void *)&array[i] + sizeof(struct nlist_64)))
+	return ;
+		if(array[i].n_type & N_STAB) {
+			continue;
+		}
+		new.n_value = array[i].n_value;
+		new.sym_type = give_symbole_type(array[i].n_type, array[i].n_sect);
+		new.sym_name = stringtable + array[i].n_un.n_strx;
+		new.n_value = array[i].n_value;
+		if (!(array[i].n_type & N_EXT))
+			new.sym_type += 32;
+		if (new.sym_type == 'W' || new.sym_type == 'w')
+		{
+			printf("%s %c %d\n",new.sym_name, new.sym_type,array[i].n_sect);
+			exit (2);
+		}
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 	}
 	ft_lstsort(&new_lst, sort_lst_nm);
@@ -110,6 +161,34 @@ int	handle_64(char	*ptr,size_t size)
 	return (0);
 }
 
+int	handle_32(char	*ptr,size_t size)
+{
+	int						ncmds;
+	int						i;
+	struct mach_header	*header;
+	struct load_command		*lc;
+	struct symtab_command		*sym;
+
+	i = 0;
+	header = (struct mach_header *)ptr;
+	ncmds = header->ncmds;
+	lc = (void *)ptr + sizeof(*header);
+	if (addr_outof_range(ptr,size,lc + sizeof(lc)))
+		return (1);
+	for (i = 0; i <ncmds; ++i)
+	{
+		if (lc->cmd == LC_SYMTAB)
+		{
+			sym = (struct symtab_command *) lc;
+			if (addr_outof_range(ptr,size,sym + sizeof(sym)))
+				return (1);
+			print_output_32(sym->nsyms, sym->symoff, sym->stroff,ptr,size);
+			break;
+		}
+		lc = (void *) lc + lc->cmdsize;
+	}
+	return (0);
+}
 bool addr_outof_range(void *start, size_t size, void *ptr)
 {
 	if (ptr >= start && ptr <= start + size)
@@ -212,7 +291,7 @@ int	nm(char *ptr,size_t size)
 	if (inf_header.type == 1)
 	{
 		printf("enter hanfler_32\n");
-		//handle_32
+		handle_32(ptr,size);
 	}
 	else if (inf_header.type == 2)
 	{
