@@ -37,6 +37,7 @@ typedef struct	s_gnl
 	int			fd;
 }				t_gnl;
 
+long long		ft_pow(int nb, int pow);
 int				get_next_line(int const fd, char **line);
 void			*ft_memset(void *b, int c, size_t len);
 void			ft_bzero(void *s, size_t n);
@@ -114,4 +115,6 @@ t_list			*ft_lststr(t_list **lst, void *compare, int (*f)());
 pid_t			ft_fork();
 void			do_closedire(DIR *rep);
 char			**ft_split_whitespaces(const char *str);
+char	*ft_itoa_base(long long value, int base);
+
 #endif

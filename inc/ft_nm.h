@@ -27,7 +27,11 @@ typedef struct s_symbol
 	char	*sym_name;
 	char	sym_type;
 	uint64_t n_value;
+	short	cpu_type;
 }		t_symbol;
 
 bool addr_outof_range(void *start, size_t size, void *ptr);
+char							ft_get_type_64(struct nlist_64 symbol, void *ptr, size_t size);
+char							ft_get_type(struct nlist symbol, void *ptr, size_t size);
+void	show_list(t_list *lst);
 #endif

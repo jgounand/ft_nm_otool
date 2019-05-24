@@ -11,54 +11,7 @@ int	sort_lst_nm(void	*content, void	*content_next)
 	ret = ft_strcmp(tmp->sym_name, tmp2->sym_name);
 	return(ret > 0? 1 : 0);
 }
-
-void	show_list(t_list *lst)
-{
-	t_symbol	*content;
-
-	content = lst->content;
-	if (content->n_value)
-		printf("0x%llx\t%c %s\n",content->n_value,content->sym_type, content->sym_name);
-	else
-		printf("\t\t%c %s\n",content->sym_type, content->sym_name);
-}
-
-char	give_symbole_type(uint8_t n_type, uint8_t n_sect)
-{
-	if ((n_type & N_TYPE) ==  N_UNDF)
-		return ('U');
-	else if ((n_type & N_TYPE) ==  N_ABS)
-		return ('A');
-	else if ((n_type & N_TYPE) ==  N_SECT)
-	{
-		if (n_sect == 1)
-			return ('T');
-		else if (n_sect == 6 || n_sect == 15 || n_sect == 26 || n_sect == 18 || n_sect == 13)
-			return ('S');
-		else if (n_sect == 11 || n_sect == 25)
-			return ('S');
-		else if (n_sect == 21)
-			return ('U');
-			else if (n_sect == 14)
-			return ('B');
-		return ('W');
-	}
-	else if ((n_type & N_TYPE) ==  N_PBUD)
-	{
-		printf("JE ne sais pas quelle lettre mettre\n");
-		return ('X');
-	}
-	else if ((n_type & N_TYPE) ==  N_INDR)
-	{
-		printf("JE ne sais pas quelle lettre mettre\n");
-		return ('X');
-	}
-	else
-		printf("error ");
-	return('0');
-}
-
-void	print_output(int nsyms, int symoff, int stroff, char *ptr, size_t size)
+void	print_output(int nsyms, int symoff, int stroff, char *ptr, size_t size, short cpu_type)
 {
 	int				i;
 	char			*stringtable;
@@ -79,24 +32,17 @@ void	print_output(int nsyms, int symoff, int stroff, char *ptr, size_t size)
 			continue;
 		}
 		new.n_value = array[i].n_value;
-		new.sym_type = give_symbole_type(array[i].n_type, array[i].n_sect);
+		new.sym_type = ft_get_type_64(array[i],ptr,size);
 		new.sym_name = stringtable + array[i].n_un.n_strx;
 		new.n_value = array[i].n_value;
-		if (!(array[i].n_type & N_EXT))
-			new.sym_type += 32;
-		if (new.sym_type == 'W' || new.sym_type == 'w')
-		{
-			printf("%s %c %d\n",new.sym_name, new.sym_type,array[i].n_sect);
-			exit (2);
-		}
-
+		new.cpu_type = cpu_type;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 	}
 ;
 	ft_lstsort(&new_lst, sort_lst_nm);
 	ft_lstiter(new_lst,show_list);
 }
-void	print_output_32(int nsyms, int symoff, int stroff, char *ptr, size_t size)
+void	print_output_32(int nsyms, int symoff, int stroff, char *ptr, size_t size, short cpu_type)
 {
 	int				i;
 	char			*stringtable;
@@ -117,22 +63,16 @@ void	print_output_32(int nsyms, int symoff, int stroff, char *ptr, size_t size)
 			continue;
 		}
 		new.n_value = array[i].n_value;
-		new.sym_type = give_symbole_type(array[i].n_type, array[i].n_sect);
+		new.sym_type = ft_get_type(array[i], ptr, size);
 		new.sym_name = stringtable + array[i].n_un.n_strx;
 		new.n_value = array[i].n_value;
-		if (!(array[i].n_type & N_EXT))
-			new.sym_type += 32;
-		if (new.sym_type == 'W' || new.sym_type == 'w')
-		{
-			printf("%s %c %d\n",new.sym_name, new.sym_type,array[i].n_sect);
-			exit (2);
-		}
+		new.cpu_type = cpu_type;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 	}
 	ft_lstsort(&new_lst, sort_lst_nm);
 	ft_lstiter(new_lst,show_list);
 }
-int	handle_64(char	*ptr,size_t size)
+int	handle_64(char	*ptr,size_t size, short cpu_type)
 {
 	int						ncmds;
 	int						i;
@@ -153,7 +93,7 @@ int	handle_64(char	*ptr,size_t size)
 			sym = (struct symtab_command *) lc;
 			if (addr_outof_range(ptr,size,sym + sizeof(sym)))
 				return (1);
-			print_output(sym->nsyms, sym->symoff, sym->stroff,ptr,size);
+			print_output(sym->nsyms, sym->symoff, sym->stroff,ptr,size, cpu_type);
 			break;
 		}
 		lc = (void *) lc + lc->cmdsize;
@@ -161,7 +101,7 @@ int	handle_64(char	*ptr,size_t size)
 	return (0);
 }
 
-int	handle_32(char	*ptr,size_t size)
+int	handle_32(char	*ptr,size_t size, short type_cpu)
 {
 	int						ncmds;
 	int						i;
@@ -182,7 +122,7 @@ int	handle_32(char	*ptr,size_t size)
 			sym = (struct symtab_command *) lc;
 			if (addr_outof_range(ptr,size,sym + sizeof(sym)))
 				return (1);
-			print_output_32(sym->nsyms, sym->symoff, sym->stroff,ptr,size);
+			print_output_32(sym->nsyms, sym->symoff, sym->stroff,ptr,size,type_cpu);
 			break;
 		}
 		lc = (void *) lc + lc->cmdsize;
@@ -291,12 +231,12 @@ int	nm(char *ptr,size_t size)
 	if (inf_header.type == 1)
 	{
 		printf("enter hanfler_32\n");
-		handle_32(ptr,size);
+		handle_32(ptr,size, 32);
 	}
 	else if (inf_header.type == 2)
 	{
 		printf("enter hanfler_64\n");
-		return (handle_64(ptr,size));
+		return (handle_64(ptr,size, 64));
 	}
 	else if (inf_header.type == 3)
 	{
