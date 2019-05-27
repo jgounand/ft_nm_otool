@@ -7,16 +7,16 @@ static void	print_n_value(uint64_t n_value, short type_cpu)
 	
 	string[16] = '\0';
 	if (!n_value)
-		ft_memset(string, ' ',15);
+		ft_memset(string, ' ',16);
 	else
 	{
 		ft_memset(string, '0',15);
 		n_value_string = ft_itoa_base(n_value,16);
-		ft_memcpy(string + ft_strlen(string) - ft_strlen(n_value_string), n_value_string, ft_strlen(n_value_string));
+		ft_memcpy(string + ft_strlen(string) - ft_strlen(n_value_string) + 1, n_value_string, ft_strlen(n_value_string));
 		free(n_value_string);
 	}
 	if (type_cpu == 32)
-		ft_putstr(string + 7);
+		ft_putstr(string + 8);
 	else
 		ft_putstr(string);
 	ft_putchar(' ');

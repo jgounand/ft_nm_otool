@@ -9,6 +9,8 @@ int	sort_lst_nm(void	*content, void	*content_next)
 	tmp = content;
 	tmp2 = content_next;
 	ret = ft_strcmp(tmp->sym_name, tmp2->sym_name);
+		if (ret == 0)
+		return (tmp->n_value > tmp2->n_value);
 	return(ret > 0? 1 : 0);
 }
 void	print_output(int nsyms, int symoff, int stroff, char *ptr, size_t size, short cpu_type)
@@ -230,12 +232,10 @@ int	nm(char *ptr,size_t size)
 	}
 	if (inf_header.type == 1)
 	{
-		printf("enter hanfler_32\n");
 		handle_32(ptr,size, 32);
 	}
 	else if (inf_header.type == 2)
 	{
-		printf("enter hanfler_64\n");
 		return (handle_64(ptr,size, 64));
 	}
 	else if (inf_header.type == 3)

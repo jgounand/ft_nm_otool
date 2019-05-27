@@ -16,14 +16,18 @@ static char						st_find_char(struct segment_command *segment,
 	sect = (struct section *)((char *)segment
 			+ sizeof(struct segment_command));
 	sect += index;
-	if (!ft_strcmp(segment->segname, "__DATA")
-			&& !ft_strcmp(sect->sectname, "__bss"))
+	printf("nb section %d\n",segment->nsects);
+	if (!ft_strcmp(segment->segname, SEG_OBJC))	
+	//		&& !ft_strcmp(sect->sectname, SECT_OBJC_SYMBOLS))
 		return ('b');
-	if (!ft_strcmp(segment->segname, "__DATA")
+	if (!ft_strcmp(segment->segname, SEG_DATA)
+			&& !ft_strcmp(sect->sectname, SECT_BSS))
+		return ('b');
+	if (!ft_strcmp(segment->segname, SEG_DATA)
 			&& !ft_strcmp(sect->sectname, "__data"))
 		return ('d');
-	if (!ft_strcmp(segment->segname, "__TEXT")
-			&& !ft_strcmp(sect->sectname, "__text"))
+	if (!ft_strcmp(segment->segname, SEG_TEXT)
+			&& !ft_strcmp(sect->sectname, SECT_TEXT))
 		return ('t');
 	return ('s');
 }
@@ -48,8 +52,6 @@ static char	find_type(struct nlist symbol, void *ptr,size_t size)
 		if (cmd->cmd == LC_SEGMENT)
 		{
 			segment = (struct segment_command *)cmd;
-			if (addr_outof_range(ptr,size,segment + sizeof(segment) - 1))
-				return '1';
 			if (n + segment->nsects > symbol.n_sect)
 				return (st_find_char(segment, symbol.n_sect - n - 1));
 			n += segment->nsects;
