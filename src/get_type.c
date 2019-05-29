@@ -31,6 +31,9 @@ static char						st_find_char(struct segment_command *segment,
 	return ('s');
 }
 
+/**
+* Find the type from the number segment give on symbole
+**/
 static char	find_type(struct nlist symbol, void *ptr,size_t size)
 {
 	struct load_command			*cmd;
@@ -41,7 +44,7 @@ static char	find_type(struct nlist symbol, void *ptr,size_t size)
 
 	header = (struct mach_header *)ptr;
 	i = 0;
-	n = 01;
+	n = 1;
 	cmd = (struct load_command *)(((char *)ptr)
 			+ sizeof(struct mach_header));
 		if (size)
@@ -51,13 +54,8 @@ static char	find_type(struct nlist symbol, void *ptr,size_t size)
 		if (cmd->cmd == LC_SEGMENT)
 		{
 			segment = (struct segment_command *)cmd;
-	//printf("hader name :%s\n\n",segment->segname);
 			if (n + segment->nsects > symbol.n_sect)
-			{
-				//printf("min :%d , max :%d curr:%d symbol.n_sect :%d\n",n, n + segment->nsects,segment->nsects, symbol.n_sect);
-				//printf("n_sect - n:%d i :%d\n", symbol.n_sect - n,i);
 				return (st_find_char(segment, symbol.n_sect - n));
-			}
 			n += segment->nsects;
 		}
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);

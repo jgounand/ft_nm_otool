@@ -15,6 +15,9 @@ static char						st_find_char_64(struct segment_command_64 *segment,
 	sect = (struct section_64 *)((char *)segment
 			+ sizeof(struct segment_command_64));
 	sect += index;
+	if (!ft_strcmp(segment->segname, SEG_DATA)
+			&& !ft_strcmp(sect->sectname, SECT_BSS))
+		return ('b');
 	if (!ft_strcmp(segment->segname, "__DATA")
 			&& !ft_strcmp(sect->sectname, "__bss"))
 		return ('b');
@@ -37,7 +40,7 @@ static char	find_type_64(struct nlist_64 symbol, void *ptr,size_t size)
 
 	header = (struct mach_header_64 *)ptr;
 	i = 0;
-	n = 0;
+	n = 1;
 	cmd = (struct load_command *)(((char *)ptr)
 			+ sizeof(struct mach_header_64));
 	while (i < header->ncmds)
@@ -47,10 +50,8 @@ static char	find_type_64(struct nlist_64 symbol, void *ptr,size_t size)
 		if (cmd->cmd == LC_SEGMENT_64)
 		{
 			segment = (struct segment_command_64 *)cmd;
-			if (addr_outof_range(ptr,size,segment + sizeof(segment) - 1))
-				return '1';
 			if (n + segment->nsects > symbol.n_sect)
-				return (st_find_char_64(segment, symbol.n_sect - n - 1));
+				return (st_find_char_64(segment, symbol.n_sect - n));
 			n += segment->nsects;
 		}
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);

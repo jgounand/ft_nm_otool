@@ -34,4 +34,10 @@ bool addr_outof_range(void *start, size_t size, void *ptr);
 char							ft_get_type_64(struct nlist_64 symbol, void *ptr, size_t size);
 char							ft_get_type(struct nlist symbol, void *ptr, size_t size);
 void	show_list(t_list *lst);
+
+t_inf_header	get_type(char *ptr, size_t size);
+int should_swap_bytes(uint32_t magic);
+
+void	swap_header(void *header, short type);
+void	swap_fat_arch(struct fat_arch *arch);
 #endif

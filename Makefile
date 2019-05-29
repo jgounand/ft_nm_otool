@@ -20,7 +20,7 @@ SRC_DIR =		./src/
 OBJ_DIR_NAME =	obj
 OBJ_DIR =		./obj/
 
-FILENAMES =	nm get_type get_type_64 print
+FILENAMES =	nm get_type get_type_64 print swap
 
 
 OBJ_PATHS :=	$(addsuffix .o,$(FILENAMES))
