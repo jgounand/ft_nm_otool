@@ -16,10 +16,9 @@ static char						st_find_char(struct segment_command *segment,
 	sect = (struct section *)((char *)segment
 			+ sizeof(struct segment_command));
 	sect += index;
-	printf("nb section %d\n",segment->nsects);
-	if (!ft_strcmp(segment->segname, SEG_OBJC))	
-	//		&& !ft_strcmp(sect->sectname, SECT_OBJC_SYMBOLS))
-		return ('b');
+	//printf("size sect :%ld\n", (sect+1 - sect));
+	//printf("section size %d vm size %d\n", segment->cmdsize,segment->vmsize);
+	//printf("seg name %s sec name %s\n",segment->segname, sect->sectname);
 	if (!ft_strcmp(segment->segname, SEG_DATA)
 			&& !ft_strcmp(sect->sectname, SECT_BSS))
 		return ('b');
@@ -42,18 +41,23 @@ static char	find_type(struct nlist symbol, void *ptr,size_t size)
 
 	header = (struct mach_header *)ptr;
 	i = 0;
-	n = 0;
+	n = 01;
 	cmd = (struct load_command *)(((char *)ptr)
 			+ sizeof(struct mach_header));
+		if (size)
+			;
 	while (i < header->ncmds)
 	{
-	if (addr_outof_range(ptr,size,cmd + sizeof(cmd) - 1))
-		return '1';
 		if (cmd->cmd == LC_SEGMENT)
 		{
 			segment = (struct segment_command *)cmd;
+	//printf("hader name :%s\n\n",segment->segname);
 			if (n + segment->nsects > symbol.n_sect)
-				return (st_find_char(segment, symbol.n_sect - n - 1));
+			{
+				//printf("min :%d , max :%d curr:%d symbol.n_sect :%d\n",n, n + segment->nsects,segment->nsects, symbol.n_sect);
+				//printf("n_sect - n:%d i :%d\n", symbol.n_sect - n,i);
+				return (st_find_char(segment, symbol.n_sect - n));
+			}
 			n += segment->nsects;
 		}
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);

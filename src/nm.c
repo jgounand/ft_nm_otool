@@ -70,6 +70,11 @@ void	print_output_32(int nsyms, int symoff, int stroff, char *ptr, size_t size, 
 		new.n_value = array[i].n_value;
 		new.cpu_type = cpu_type;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
+		//printf("%s\n\n", new.sym_name);
+		if (!ft_strcmp(new.sym_name, "_debugTimer"))
+		{
+			//exit(3);
+		}
 	}
 	ft_lstsort(&new_lst, sort_lst_nm);
 	ft_lstiter(new_lst,show_list);
