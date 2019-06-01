@@ -16,17 +16,12 @@ static char						st_find_char(struct segment_command *segment,
 	sect = (struct section *)((char *)segment
 			+ sizeof(struct segment_command));
 	sect += index;
-	//printf("size sect :%ld\n", (sect+1 - sect));
-	//printf("section size %d vm size %d\n", segment->cmdsize,segment->vmsize);
-	//printf("seg name %s sec name %s\n",segment->segname, sect->sectname);
-	if (!ft_strcmp(segment->segname, SEG_DATA)
-			&& !ft_strcmp(sect->sectname, SECT_BSS))
+	//printf("seg name %s sec name %s\n",sect->segname, sect->sectname);
+	if (!ft_strcmp(sect->sectname, SECT_BSS))
 		return ('b');
-	if (!ft_strcmp(segment->segname, SEG_DATA)
-			&& !ft_strcmp(sect->sectname, "__data"))
+	if (!ft_strcmp(sect->sectname, SECT_DATA))
 		return ('d');
-	if (!ft_strcmp(segment->segname, SEG_TEXT)
-			&& !ft_strcmp(sect->sectname, SECT_TEXT))
+	if (!ft_strcmp(sect->sectname, SECT_TEXT))
 		return ('t');
 	return ('s');
 }
@@ -34,13 +29,14 @@ static char						st_find_char(struct segment_command *segment,
 /**
 * Find the type from the number segment give on symbole
 **/
-static char	find_type(struct nlist symbol, void *ptr,size_t size)
+static char	find_type(struct nlist symbol, void *ptr,size_t size,t_inf_header info)
 {
 	struct load_command			*cmd;
 	struct mach_header		*header;
 	struct segment_command	*segment;
 	unsigned int				i;
 	unsigned int				n;
+	char						ret;
 
 	header = (struct mach_header *)ptr;
 	i = 0;
@@ -49,24 +45,35 @@ static char	find_type(struct nlist symbol, void *ptr,size_t size)
 			+ sizeof(struct mach_header));
 		if (size)
 			;
+	//printf("n_sect %d\n",symbol.n_sect);
 	while (i < header->ncmds)
 	{
 		if (cmd->cmd == LC_SEGMENT)
 		{
 			segment = (struct segment_command *)cmd;
-			if (n + segment->nsects > symbol.n_sect)
-				return (st_find_char(segment, symbol.n_sect - n));
+		if (info.swap)
+			swap_segment_command(segment, 0);
+			//printf("segment nsect %d\n cmd size %d\n",segment->nsects, segment->cmdsize);
+				if (segment->nsects && n + segment->nsects > symbol.n_sect)
+			{
+			ret = st_find_char(segment, symbol.n_sect - n);
+		if (info.swap)
+			swap_segment_command(segment, 0);
+				return (ret);
+			}
 			n += segment->nsects;
+		if (info.swap)
+			swap_segment_command(segment, 0);
 		}
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
 		++i;
 	}
 	return ('s');
 }
-char							ft_get_type(struct nlist symbol, void *ptr, size_t size)
+char							ft_get_type(struct nlist symbol, void *ptr, size_t size, t_inf_header info)
 {
 	if ((symbol.n_type & N_TYPE) == N_SECT)
-		return (st_set_upper(find_type(symbol, ptr,size), symbol));
+		return (st_set_upper(find_type(symbol, ptr,size,info), symbol));
 	if ((symbol.n_type & N_TYPE) == N_UNDF)
 	{
 		if (symbol.n_value == 0)
