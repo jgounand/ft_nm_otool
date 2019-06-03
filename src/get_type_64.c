@@ -47,7 +47,7 @@ static char	find_type_64(struct nlist_64 symbol, void *ptr,size_t size, t_inf_he
 			segment = (struct segment_command_64 *)cmd;
 		if (info.swap)
 			swap_segment_command(segment,1);
-			printf("segment nsect %d\n cmd size %d\n",segment->nsects, segment->cmdsize);
+			//printf("segment nsect %d\n cmd size %d\n",segment->nsects, segment->cmdsize);
 			if (segment->nsects && (n + segment->nsects > symbol.n_sect))
 			{
 				c = st_find_char_64(segment, symbol.n_sect - n);

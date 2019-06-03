@@ -23,6 +23,8 @@ void	print_output(struct symtab_command *sym, char *ptr, size_t size, t_inf_head
 
 	array = (void *)ptr + sym->symoff;
 	stringtable =(void *) ptr + sym->stroff;
+	if (addr_outof_range(ptr, size, array + sym->nsyms))
+		return ;
 	new_lst = NULL;
 	for (i =0; i <sym->nsyms; ++i)
 	{
@@ -52,6 +54,8 @@ void	print_output_32(struct symtab_command *sym, char *ptr, size_t size, t_inf_h
 
 	array = (void *)ptr + sym->symoff;
 	stringtable =(void *) ptr + sym->stroff;
+	if (addr_outof_range(ptr, size, array + sym->nsyms))
+		return ;
 	new_lst = NULL;
 	for (i =0; i <sym->nsyms; ++i)
 	{
@@ -80,10 +84,12 @@ int	handle_64(char	*ptr,size_t size, t_inf_header info)
 
 	i = 0;
 	header = (struct mach_header_64 *)ptr;
+	lc = (void *)ptr + sizeof(*header);
+	ncmds = header->ncmds;
+	if (addr_outof_range(ptr,size, lc + ncmds))
+		return (-1);
 	if (info.swap)
 		swap_header(header, info.type);
-	ncmds = header->ncmds;
-	lc = (void *)ptr + sizeof(*header);
 	for (i = 0; i <ncmds; ++i)
 	{
 		if (lc->cmd == LC_SYMTAB)
@@ -106,9 +112,11 @@ int	handle_32(char	*ptr,size_t size, t_inf_header info)
 
 	i = 0;
 	header = (struct mach_header *)ptr;
+	lc = (void *)ptr + sizeof(*header);
+	if (addr_outof_range(ptr,size, lc + header->ncmds))
+		return (-1);
 	if (info.swap)
 		swap_header(header,info.type);
-	lc = (void *)ptr + sizeof(*header);
 	i = 0;
 	while (i < header->ncmds)
 	{
@@ -172,7 +180,7 @@ void print_arch(struct fat_arch *arch)
 	else if (arch->cputype == CPU_TYPE_MC98000)
 		ft_putstr("mc98000");
 	else if (arch->cputype == CPU_TYPE_POWERPC)
-		ft_putstr("powerpc");
+		ft_putstr("ppc");
 	else if (arch->cputype == CPU_ARCH_ABI64)
 		ft_putstr("abi64");
 	else if (arch->cputype == CPU_TYPE_POWERPC64)
@@ -211,11 +219,11 @@ int	handle_fat(char *ptr, size_t size, char *av)
 	bool	swap;
 	int index;
 
-	if (size)
-	;
-	swap = 0;
 	header = (struct fat_header *)ptr;
 	arch = (void *)header + sizeof(struct fat_header);
+	if (addr_outof_range(ptr, size, (void *)ptr + sizeof(struct fat_header) * header->nfat_arch))
+		return (-1);
+	swap = 0;
 	i = 0 ;
 	if (header->magic == FAT_CIGAM)
 	{
@@ -224,7 +232,7 @@ int	handle_fat(char *ptr, size_t size, char *av)
 	}
 	if ((index = position_header(header, CPU_TYPE_X86_64,swap)) != -1)
 	{
-		arch += sizeof(struct fat_arch) * index;
+		arch += index;
 		nm(ptr + arch->offset, arch->size,av);
 		return (0);
 	}
@@ -312,7 +320,6 @@ t_inf_header	get_type(char *ptr, size_t size)
 		inf_header.type = tmp.type;
 	else
 	{
-		ft_putstr_fd("Error type\n",2);
 		inf_header.error = 1;
 	}
 	return (inf_header);
