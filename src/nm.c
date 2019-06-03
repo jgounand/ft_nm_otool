@@ -221,8 +221,6 @@ int	handle_fat(char *ptr, size_t size, char *av)
 
 	header = (struct fat_header *)ptr;
 	arch = (void *)header + sizeof(struct fat_header);
-	if (addr_outof_range(ptr, size, (void *)ptr + sizeof(struct fat_header) * header->nfat_arch))
-		return (-1);
 	swap = 0;
 	i = 0 ;
 	if (header->magic == FAT_CIGAM)
@@ -230,9 +228,13 @@ int	handle_fat(char *ptr, size_t size, char *av)
 		swap_header(header, 3);
 		swap = 1;
 	}
+	if (addr_outof_range(ptr, size, arch +  header->nfat_arch))
+		return (-1);
 	if ((index = position_header(header, CPU_TYPE_X86_64,swap)) != -1)
 	{
 		arch += index;
+		if (addr_outof_range(ptr, size, ptr + arch->offset + arch->size))
+			return (-1);
 		nm(ptr + arch->offset, arch->size,av);
 		return (0);
 	}
