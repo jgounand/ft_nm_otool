@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <mach-o/ranlib.h>
 
 # include "../libft/inc/libft.h"
 # include <ar.h>
@@ -25,10 +26,13 @@ typedef struct s_inf_header
 typedef struct s_symbol
 {	
 	char	*sym_name;
+	char	*n_value_name;
 	char	sym_type;
 	uint64_t n_value;
 	short	cpu_type;
+	char	more[256];
 }		t_symbol;
+
 
 bool addr_outof_range(void *start, size_t size, void *ptr);
 char							ft_get_type_64(struct nlist_64 symbol, void *ptr, size_t size, t_inf_header info);

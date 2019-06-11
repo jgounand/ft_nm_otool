@@ -66,9 +66,9 @@ char		*ft_itoa(int n)
 	return (result);
 }
 
-char	*ft_itoa_base(long long value, int base)
+char	*ft_itoa_base(uint64_t value, int base)
 {
-	int		i;
+	long		i;
 	char	*nbr;
 	int		neg;
 

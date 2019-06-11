@@ -11,12 +11,14 @@ void	swap_header(void *header, short type)
 		_32 = header;
 		_32->magic = __builtin_bswap32(_32->magic);
 		_32->ncmds = __builtin_bswap32(_32->ncmds);
+		_32->sizeofcmds = __builtin_bswap32(_32->sizeofcmds);
 	}
 	else if (type == 2)
 	{
 		_64 = header;
 		_64->magic = __builtin_bswap32(_64->magic);
 		_64->ncmds = __builtin_bswap32(_64->ncmds);
+		_64->sizeofcmds = __builtin_bswap32(_64->sizeofcmds);
 	}
 	else if (type == 3)
 	{

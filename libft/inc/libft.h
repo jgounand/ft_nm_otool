@@ -115,6 +115,6 @@ t_list			*ft_lststr(t_list **lst, void *compare, int (*f)());
 pid_t			ft_fork();
 void			do_closedire(DIR *rep);
 char			**ft_split_whitespaces(const char *str);
-char	*ft_itoa_base(long long value, int base);
+char	*ft_itoa_base(uint64_t value, int base);
 
 #endif

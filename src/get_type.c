@@ -72,14 +72,14 @@ static char	find_type(struct nlist symbol, void *ptr,size_t size,t_inf_header in
 }
 char							ft_get_type(struct nlist symbol, void *ptr, size_t size, t_inf_header info)
 {
-	if ((symbol.n_type & N_TYPE) == N_SECT)
+	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
 		return (st_set_upper(find_type(symbol, ptr,size,info), symbol));
-	if ((symbol.n_type & N_TYPE) == N_UNDF)
+	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_sect == NO_SECT)
 	{
-		if (symbol.n_value == 0)
-			return (st_set_upper('u', symbol));
+		if (symbol.n_value)
+			return (symbol.n_type & N_EXT ? 'C' : '?');
 		else
-			return (st_set_upper('c', symbol));
+			return (st_set_upper('u', symbol));
 	}
 	if ((symbol.n_type & N_TYPE) == N_ABS)
 		return (st_set_upper('a', symbol));

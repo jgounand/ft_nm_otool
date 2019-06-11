@@ -38,28 +38,29 @@ static char	find_type_64(struct nlist_64 symbol, void *ptr,size_t size, t_inf_he
 	n = 1;
 	cmd = (struct load_command *)(((char *)ptr)
 			+ sizeof(struct mach_header_64));
+	//printf("symbol.n_sect %d\n", symbol.n_sect);
 	while (i < header->ncmds)
 	{
-	if (addr_outof_range(ptr,size,cmd + sizeof(cmd) - 1))
-		return '1';
+		if (addr_outof_range(ptr,size,cmd))
+			return '1';
 		if (cmd->cmd == LC_SEGMENT_64)
 		{
 			segment = (struct segment_command_64 *)cmd;
-		if (info.swap)
-			swap_segment_command(segment,1);
 			//printf("segment nsect %d\n cmd size %d\n",segment->nsects, segment->cmdsize);
 			if (segment->nsects && (n + segment->nsects > symbol.n_sect))
 			{
 				c = st_find_char_64(segment, symbol.n_sect - n);
 
-		if (info.swap)
-			swap_segment_command(segment,1);
+				if (info.swap)
+					swap_segment_command(segment,1);
 				return (c);
 			}
 			n += segment->nsects;
-		if (info.swap)
-			swap_segment_command(segment,1);
+			if (info.swap)
+				swap_segment_command(segment,1);
 		}
+		if (cmd->cmdsize % 8)
+			return ('1');
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
 		++i;
 	}
@@ -67,18 +68,19 @@ static char	find_type_64(struct nlist_64 symbol, void *ptr,size_t size, t_inf_he
 }
 char							ft_get_type_64(struct nlist_64 symbol, void *ptr, size_t size,t_inf_header info)
 {
-	if ((symbol.n_type & N_TYPE) == N_SECT)
+	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
 		return (st_set_upper_64(find_type_64(symbol, ptr, size,info), symbol));
-	if ((symbol.n_type & N_TYPE) == N_UNDF)
+	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_sect == NO_SECT)
 	{
-		if (symbol.n_value == 0)
-			return (st_set_upper_64('u', symbol));
+		if (symbol.n_value)
+			return (symbol.n_type & N_EXT ? 'C' : '?');
 		else
-			return (st_set_upper_64('c', symbol));
+			return (st_set_upper_64('u', symbol));
 	}
 	if ((symbol.n_type & N_TYPE) == N_ABS)
 		return (st_set_upper_64('a', symbol));
 	if ((symbol.n_type & N_TYPE) == N_INDR)
 		return (st_set_upper_64('i', symbol));
-	return ('X');
+	return ('?');
 }
+
