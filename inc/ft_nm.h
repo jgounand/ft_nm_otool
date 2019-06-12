@@ -21,6 +21,9 @@ typedef struct s_inf_header
 	bool	swap;
 	bool	cpu;
 	bool	error;
+	void	*file;
+	size_t	size;
+	char	*filename;
 }		t_inf_header;
 
 typedef struct s_symbol
@@ -35,8 +38,8 @@ typedef struct s_symbol
 
 
 bool addr_outof_range(void *start, size_t size, void *ptr);
-char							ft_get_type_64(struct nlist_64 symbol, void *ptr, size_t size, t_inf_header info);
-char							ft_get_type(struct nlist symbol, void *ptr, size_t size, t_inf_header info);
+char							ft_get_type_64(struct nlist_64 symbol, t_inf_header info);
+char							ft_get_type(struct nlist symbol, t_inf_header info);
 void	show_list(t_list *lst);
 
 t_inf_header	get_type(char *ptr, size_t size);
@@ -49,4 +52,5 @@ void	swap_load_command(struct load_command *lc);
 void	swap_symtab_command(struct symtab_command *sym);
 void	swap_nlist(void *ptr, bool type_64);
 void	swap_segment_command(void *segment, bool type_64);
+void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym);
 #endif

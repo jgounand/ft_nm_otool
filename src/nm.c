@@ -15,54 +15,66 @@ int	sort_lst_nm(void	*content, void	*content_next)
 	return(ret > 0? 1 : 0);
 }
 
-int	print_output(struct symtab_command *sym, char *ptr, size_t size, t_inf_header info)
+char *ft_get_name(char type, struct nlist_64 list, t_inf_header info, void *stringtable)
 {
-	uint32_t				i;
-	char			*stringtable;
-	struct nlist_64	*array;
+	if (type == 'I')
+	{
+		if (stringtable + list.n_value < info.file || stringtable + list.n_value > info.file + info.size)
+		return ("?");
+		else
+			return(stringtable + list.n_value);
+	}
+	if (stringtable + list.n_un.n_strx < info.file || stringtable + list.n_un.n_strx > info.file + info.size)
+		return (g_badstring);
+	else
+		return (stringtable + list.n_un.n_strx);
+}
+
+t_list	*parse_symtab(struct nlist_64 *array, t_inf_header info,struct symtab_command *sym)
+{
+	uint32_t	i;
 	t_list	*new_lst;
 	t_symbol new;
+	char	*stringtable;
 
-	array = (void *)ptr + sym->symoff;
-	stringtable =(void *) ptr + sym->stroff;
-	
-	if (addr_outof_range(ptr, size, array + sym->nsyms))
-		return (EXIT_FAILURE);
+	i = 0;
 	new_lst = NULL;
-	for (i =0; i <sym->nsyms; ++i)
+	stringtable = info.file + sym->stroff;
+	while (i < sym->nsyms)
 	{
-		if (info.swap)
-			swap_nlist(&array[i],1);
-		if(array[i].n_type & N_STAB)
+		if(array[i].n_type & N_STAB && ++i)
 			continue;
-		if (stringtable + array[i].n_un.n_strx < ptr || stringtable + array[i].n_un.n_strx > ptr + size)
-			new.sym_name = g_badstring;
-		else
-			new.sym_name = stringtable + array[i].n_un.n_strx;
-		new.sym_type = ft_get_type_64(array[i],ptr,size,info);
-		if (new.sym_type == '1')
-			exit (9);
-		new.n_value_name = NULL;
+		if ((new.sym_type = ft_get_type_64(array[i], info)) == 1) // => free
+			return (NULL);
+		new.sym_name = ft_get_name(new.sym_type, array[i], info, stringtable);
 		new.n_value = array[i].n_value;
-		if (new.sym_type == 'I')
-		{
-			if (stringtable + array[i].n_value < ptr || stringtable + array[i].n_value > ptr + size)
-				new.n_value_name = "?";
-			else
-				new.n_value_name = stringtable + array[i].n_value;
-		}
 		new.cpu_type = 64;
-		//printf("%llx %lld %c %s\n",new.n_value, new.n_value,new.sym_type, new.n_value_name);
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
+		i++;
 	}
+	return (new_lst);
+}
+
+int	create_lst_32(struct symtab_command *sym, t_inf_header info)
+{
+	struct nlist_64	*array;
+	t_list	*new_lst;
+
+	array = (void *)info.file + sym->symoff;
+	if (addr_outof_range(info.file, info.size, array + sym->nsyms))
+		return (EXIT_FAILURE);
+	if (info.swap)
+		swap_all_nlist64(array,sym);
+	new_lst = parse_symtab(array,info,sym);
 	if (new_lst)
 	{
 		ft_lstsort(&new_lst, sort_lst_nm);
 		ft_lstiter(new_lst,show_list);
+		//free
 	}
 	return (EXIT_SUCCESS);
 }
-int	print_output_32(struct symtab_command *sym, char *ptr, size_t size, t_inf_header info)
+int	print_output_32(struct symtab_command *sym,  t_inf_header info)
 {
 	uint32_t				i;
 	char			*stringtable;
@@ -70,21 +82,24 @@ int	print_output_32(struct symtab_command *sym, char *ptr, size_t size, t_inf_he
 	t_list	*new_lst;
 	t_symbol new;
 
-	array = (void *)ptr + sym->symoff;
-	stringtable =(void *) ptr + sym->stroff;
-	if (addr_outof_range(ptr, size, array + sym->nsyms))
+	if (info.swap)
+		swap_symtab_command(sym);
+	array = (void *)info.file + sym->symoff;
+	stringtable =(void *) info.file + sym->stroff;
+	if (addr_outof_range(info.file, info.size, array + sym->nsyms))
 		return (EXIT_FAILURE);
 	new_lst = NULL;
-	for (i =0; i <sym->nsyms; ++i)
+	i = 0;
+	while (i < sym->nsyms)
 	{
 		if (info.swap)
 			swap_nlist(&array[i],0);
-		if(addr_outof_range(ptr,size, stringtable + array[i].n_un.n_strx))
+		if(addr_outof_range(info.file,info.size, stringtable + array[i].n_un.n_strx) && ++i)
 			continue ;
-		if(array[i].n_type & N_STAB)
+		if(array[i].n_type & N_STAB && ++i)
 			continue;
 		new.n_value = array[i].n_value;
-		new.sym_type = ft_get_type(array[i], ptr, size,info);
+		new.sym_type = ft_get_type(array[i], info);
 		new.sym_name = stringtable + array[i].n_un.n_strx;
 		new.n_value = array[i].n_value;
 		new.cpu_type = 32;
@@ -94,13 +109,14 @@ int	print_output_32(struct symtab_command *sym, char *ptr, size_t size, t_inf_he
 			new.n_value = 0;
 		}
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
+		i++;
 	}
 	ft_lstsort(&new_lst, sort_lst_nm);
 	ft_lstiter(new_lst,show_list);
 	return (EXIT_SUCCESS);
 }
 
-int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, void *start, size_t size, bool _64)
+int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64)
 {
 	uint32_t	i;
 	struct	load_command	*lc;
@@ -121,7 +137,7 @@ int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, void *star
 	{
 		 if(info.swap)
 			swap_load_command(lc);
-		if (addr_outof_range(start,size, lc) || lc->cmdsize % modulo != 0)
+		if (addr_outof_range(info.file,info.size, lc) || lc->cmdsize % modulo != 0)
 		{
 		ft_putstr_fd("Error segment ",2);
 		ft_putnbr_fd(i - 1,2);
@@ -133,76 +149,58 @@ int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, void *star
 	return (EXIT_SUCCESS);
 }
 
-int	handle_64(char	*ptr,size_t size, t_inf_header info)
+int	handle_64(t_inf_header info)
 {
-	int						ncmds;
-	int						i;
+	uint32_t				i;
 	struct mach_header_64	*header;
 	struct load_command		*lc;
-	struct symtab_command		*sym;
 
 	i = 0;
-	header = (struct mach_header_64 *)ptr;
-	lc = (void *)ptr + sizeof(*header);
+	header = (struct mach_header_64 *)info.file;
+	lc = (void *)info.file + sizeof(*header);
 	if (info.swap)
 		swap_header(header, info.type);
-	ncmds = header->ncmds;
-	if (check_load_command(ncmds,header,info,ptr, size,1))
+	if (check_load_command(header->ncmds,header,info,1))
 		return(EXIT_FAILURE);
-	for (i = 0; i <ncmds; ++i)
+	while (i++ < header->ncmds)
 	{
-		if (addr_outof_range(ptr,size, lc) || lc->cmdsize % 8 != 0)
-			return (1);
+		if (addr_outof_range(info.file,info.size, lc))
+			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SYMTAB)
-		{
-			sym = (struct symtab_command *) lc;
-			if (print_output(sym, ptr,size,info) == EXIT_FAILURE)
-				return (EXIT_FAILURE);
-			break;
-		}
+			return(create_lst_32((struct symtab_command *)lc, info));
 		lc = (void *) lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
 }
 
-int	handle_32(char	*ptr,size_t size, t_inf_header info)
+int	handle_32(t_inf_header info)
 {
-	uint32_t						i;
+	uint32_t			i;
 	struct mach_header	*header;
-	struct load_command		*lc;
-	struct symtab_command		*sym;
+	struct load_command	*lc;
 
 	i = 0;
-	header = (struct mach_header *)ptr;
-	lc = (void *)ptr + sizeof(*header);
+	header = (struct mach_header *)info.file;
+	lc = (void *)info.file + sizeof(*header);
 	if (info.swap)
 		swap_header(header,info.type);
-	i = 0;
-	if (check_load_command(header->ncmds,header,info,ptr, size,0) == EXIT_FAILURE)
+	if (check_load_command(header->ncmds,header,info,0) == EXIT_FAILURE)
 		return(EXIT_FAILURE);
-	while (i < header->ncmds)
+	while (i++ < header->ncmds)
 	{
-		if (addr_outof_range(ptr,size, lc))
+		if (addr_outof_range(info.file,info.size, lc))
 			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SYMTAB)
-		{
-			sym = (struct symtab_command *) lc;
-			if (info.swap)
-				swap_symtab_command(sym);
-			if (print_output_32(sym ,ptr,size,info) == EXIT_FAILURE)
-				return (EXIT_FAILURE);
-			break;
-		}
+			return(print_output_32((struct symtab_command *)lc, info) == EXIT_FAILURE);
 		lc = (void *) lc + lc->cmdsize;
-		i++;
 	}
 	return (EXIT_SUCCESS);
 }
 
 int	position_header(struct fat_header  *header, cpu_type_t cpusearch, bool swap)
 {
-	uint32_t i;
-	struct fat_arch		*arch;
+	uint32_t		i;
+	struct fat_arch	*arch;
 
 	arch = (void *)header + sizeof(struct fat_header);
 	i = 0;
@@ -335,62 +333,23 @@ int should_swap_bytes(uint32_t magic) {
 }
 
 
-int	place_for_header(size_t size)
-{
-	if (size >= sizeof(struct mach_header_64))
-		return (2);
-	else if (size >= sizeof(struct mach_header))
-		return (1);
-	return (0);
-}
-
-
-t_inf_header is_match_header(uint32_t	magic_number, size_t size)
-{
-	bool	_64;
-	bool	_32;
-	t_inf_header inf_header;
-	short	size_header;
-
-	_64 = 0;
-	_32 = 0;
-	ft_bzero((void *)&inf_header, sizeof(t_inf_header));
-	if ((size_header = place_for_header(size)) == 0)
-	{
-		return (inf_header);
-	}
-	if (size_header == 1)
-		_32 = is_magic_32(magic_number);
-	else
-	{
-		_32 = is_magic_32(magic_number);
-		_64 = is_magic_64(magic_number);
-	}
-	if (_32 == 1)
-		inf_header.type = 1;
-	else
-		inf_header.type = 2;
-	return (inf_header);
-}
-
-t_inf_header	get_type(char *ptr, size_t size)
+t_inf_header	get_type_cpu(char *ptr, size_t size)
 {
 	t_inf_header	inf_header;
-	t_inf_header	tmp;
 	uint32_t	magic_number;
 
 	magic_number = *(int *)ptr;
 	ft_bzero(&inf_header, sizeof(t_inf_header));
-	if (size > 0 && is_magic_fat(magic_number)) // check place
-		inf_header.type = 3;
-	else if (size >= SARMAG && is_magic_ar(ptr))
+	if (size >= sizeof(struct ar_hdr) && is_magic_ar(ptr))
 		inf_header.type = 4;
-	else if ((tmp = is_match_header(magic_number,size)).type != 0)
-		inf_header.type = tmp.type;
+	else if (size >= sizeof(struct fat_header) && is_magic_fat(magic_number))
+		inf_header.type = 3;
+	else if (size > sizeof(struct mach_header_64) && is_magic_64(magic_number))
+		inf_header.type = 2;
+	else if (size > sizeof(struct mach_header) && is_magic_32(magic_number))
+		inf_header.type = 1;
 	else
-	{
 		inf_header.error = 1;
-	}
 	return (inf_header);
 }
 
@@ -403,14 +362,14 @@ static void	print_archive_file_name(char *filename, char *symbol)
 	write(1, "):\n", 3);
 }
 
-int	handle_ar(void *ptr, size_t size,char *filename)
+int	handle_ar(t_inf_header info)
 {
 struct ar_hdr	*header;
 	char			*str;
 	size_t			len;
 	void *tmp;
 
-tmp = ptr;
+tmp = info.file;
 	tmp += SARMAG;
 	header = (struct ar_hdr *)tmp;
 	tmp += ft_atoi(header->ar_size) + sizeof(struct ar_hdr);
@@ -420,13 +379,13 @@ tmp = ptr;
 		if (ft_atoi(header->ar_size) <= 0)
 			return (EXIT_FAILURE);
 		str = tmp + sizeof(struct ar_hdr);
-		if (tmp + (ft_atoi(header->ar_size) + sizeof(struct ar_hdr)) > tmp + size)
+		if (tmp + (ft_atoi(header->ar_size) + sizeof(struct ar_hdr)) > tmp + info.size)
 			return (EXIT_FAILURE);
-		print_archive_file_name(filename, str);
+		print_archive_file_name(info.filename, str);
 		len = ft_strlen(str);
 		while (!str[len++])
 			;
-		if (nm(tmp + sizeof(struct ar_hdr) + len - 1, ptr - (tmp +sizeof(struct ar_hdr) + len - 1) + size, filename) != 0)
+		if (nm(tmp + sizeof(struct ar_hdr) + len - 1, info.file  - (tmp +sizeof(struct ar_hdr) + len - 1) + info.size, info.filename) != 0)
 			return (EXIT_FAILURE);
 		tmp += ft_atoi(header->ar_size) + sizeof(struct ar_hdr);
 	}
@@ -437,25 +396,20 @@ int	nm(char *ptr,size_t size,char *av)
 {
 	t_inf_header	inf_header;
 
-	if ((inf_header = get_type(ptr,size)).error == 1)
+	if ((inf_header = get_type_cpu(ptr,size)).error == 1)
 		return (EXIT_FAILURE);
 	inf_header.swap = should_swap_bytes(*(int *)ptr);
+	inf_header.file = ptr;
+	inf_header.size = size;
+	inf_header.filename = av;
 	if (inf_header.type == 1)
-	{
-		return(handle_32(ptr,size, inf_header));
-	}
+		return(handle_32(inf_header));
 	else if (inf_header.type == 2)
-	{
-		return (handle_64(ptr,size, inf_header));
-	}
+		return (handle_64(inf_header));
 	else if (inf_header.type == 3)
-	{
 		return (handle_fat(ptr,size,av));
-	}
 	else if (inf_header.type == 4)
-	{
-		return(handle_ar(ptr, size,av));
-	}
+		return(handle_ar(inf_header));
 	return (EXIT_FAILURE);
 }
 
@@ -474,7 +428,7 @@ int	main(int ac, char **av)
 	{
 		return (EXIT_FAILURE);
 	}
-	if (fstat(fd,&buf) <0)
+	if (fstat(fd,&buf) < 0)
 	{
 		return (EXIT_FAILURE);
 	}

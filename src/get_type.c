@@ -26,54 +26,55 @@ static char						st_find_char(struct segment_command *segment,
 	return ('s');
 }
 
-/**
-* Find the type from the number segment give on symbole
-**/
-static char	find_type(struct nlist symbol, void *ptr,size_t size,t_inf_header info)
+static void	swap_all_segment(struct load_command *cmd, struct mach_header *header)
+{
+uint32_t	i;
+struct segment_command *segment;
+
+	i = 0;
+	while (i++ < header->ncmds)
+	{
+		if (cmd->cmd == LC_SEGMENT_64)
+		{
+			segment = (struct segment_command *)cmd;
+			swap_segment_command(segment,1);
+		}
+		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
+	}
+}
+
+static char	find_type(struct nlist symbol, t_inf_header info)
 {
 	struct load_command			*cmd;
 	struct mach_header		*header;
 	struct segment_command	*segment;
-	unsigned int				i;
-	unsigned int				n;
-	char						ret;
+	unsigned int				index[2];
 
-	header = (struct mach_header *)ptr;
-	i = 0;
-	n = 1;
-	cmd = (struct load_command *)(((char *)ptr)
+	header = (struct mach_header *)info.file;
+	index[0] = 0;
+	index[1] = 1;
+	cmd = (struct load_command *)(((char *)info.file)
 			+ sizeof(struct mach_header));
-		if (size)
-			;
-	//printf("n_sect %d\n",symbol.n_sect);
-	while (i < header->ncmds)
+	if (info.swap)
+		swap_all_segment(cmd,header);
+	while (index[0]++ < header->ncmds)
 	{
 		if (cmd->cmd == LC_SEGMENT)
 		{
 			segment = (struct segment_command *)cmd;
-		if (info.swap)
-			swap_segment_command(segment, 0);
-			//printf("segment nsect %d\n cmd size %d\n",segment->nsects, segment->cmdsize);
-				if (segment->nsects && n + segment->nsects > symbol.n_sect)
-			{
-			ret = st_find_char(segment, symbol.n_sect - n);
-		if (info.swap)
-			swap_segment_command(segment, 0);
-				return (ret);
-			}
-			n += segment->nsects;
-		if (info.swap)
-			swap_segment_command(segment, 0);
+			if (segment->nsects && index[1] + segment->nsects > symbol.n_sect)
+				return(st_find_char(segment, symbol.n_sect - index[1]));
+			index[1] += segment->nsects;
 		}
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
-		++i;
 	}
 	return ('s');
 }
-char							ft_get_type(struct nlist symbol, void *ptr, size_t size, t_inf_header info)
+
+char							ft_get_type(struct nlist symbol, t_inf_header info)
 {
 	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
-		return (st_set_upper(find_type(symbol, ptr,size,info), symbol));
+		return (st_set_upper(find_type(symbol, info), symbol));
 	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_sect == NO_SECT)
 	{
 		if (symbol.n_value)
@@ -85,5 +86,5 @@ char							ft_get_type(struct nlist symbol, void *ptr, size_t size, t_inf_header
 		return (st_set_upper('a', symbol));
 	if ((symbol.n_type & N_TYPE) == N_INDR)
 		return (st_set_upper('i', symbol));
-	return ('X');
+	return ('?');
 }

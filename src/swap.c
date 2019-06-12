@@ -86,15 +86,23 @@ void	swap_segment_command(void *segment, bool type_64)
 	if (type_64)
 	{
 	_64 = segment;
-	//	_64->cmd = __builtin_bswap32(_64->cmd);
-	//	_64->cmdsize = __builtin_bswap32(_64->cmdsize);
 		_64->nsects = __builtin_bswap32(_64->nsects);
 	}
 	else
 	{
 		_32 = segment;
-	//	_32->cmd = __builtin_bswap32(_32->cmd);
-	//	_32->cmdsize = __builtin_bswap32(_32->cmdsize);
 		_32->nsects = __builtin_bswap32(_32->nsects);
+	}
+}
+
+void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < sym->nsyms)
+	{
+		swap_nlist(&array,1);
+		i++;
 	}
 }
