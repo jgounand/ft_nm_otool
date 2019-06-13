@@ -71,7 +71,7 @@ static char	find_type(struct nlist symbol, t_inf_header info)
 	return ('s');
 }
 
-char							ft_get_type(struct nlist symbol, t_inf_header info)
+char							ft_get_type_32(struct nlist symbol, t_inf_header info)
 {
 	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
 		return (st_set_upper(find_type(symbol, info), symbol));

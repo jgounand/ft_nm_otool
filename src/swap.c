@@ -106,3 +106,14 @@ void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym)
 		i++;
 	}
 }
+void	swap_all_nlist(struct nlist *array, struct symtab_command *sym)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < sym->nsyms)
+	{
+		swap_nlist(&array,0);
+		i++;
+	}
+}

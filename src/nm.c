@@ -15,7 +15,7 @@ int	sort_lst_nm(void	*content, void	*content_next)
 	return(ret > 0? 1 : 0);
 }
 
-char *ft_get_name(char type, struct nlist_64 list, t_inf_header info, void *stringtable)
+char *ft_get_name_64(char type, struct nlist_64 list, t_inf_header info, void *stringtable)
 {
 	if (type == 'I')
 	{
@@ -30,7 +30,7 @@ char *ft_get_name(char type, struct nlist_64 list, t_inf_header info, void *stri
 		return (stringtable + list.n_un.n_strx);
 }
 
-t_list	*parse_symtab(struct nlist_64 *array, t_inf_header info,struct symtab_command *sym)
+t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header info,struct symtab_command *sym)
 {
 	uint32_t	i;
 	t_list	*new_lst;
@@ -46,7 +46,7 @@ t_list	*parse_symtab(struct nlist_64 *array, t_inf_header info,struct symtab_com
 			continue;
 		if ((new.sym_type = ft_get_type_64(array[i], info)) == 1) // => free
 			return (NULL);
-		new.sym_name = ft_get_name(new.sym_type, array[i], info, stringtable);
+		new.sym_name = ft_get_name_64(new.sym_type, array[i], info, stringtable);
 		new.n_value = array[i].n_value;
 		new.cpu_type = 64;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
@@ -55,17 +55,17 @@ t_list	*parse_symtab(struct nlist_64 *array, t_inf_header info,struct symtab_com
 	return (new_lst);
 }
 
-int	create_lst_32(struct symtab_command *sym, t_inf_header info)
+int	create_lst_64(struct symtab_command *sym, t_inf_header info)
 {
 	struct nlist_64	*array;
 	t_list	*new_lst;
 
 	array = (void *)info.file + sym->symoff;
-	if (addr_outof_range(info.file, info.size, array + sym->nsyms))
+	if (addr_outof_range(info, array + sym->nsyms))
 		return (EXIT_FAILURE);
 	if (info.swap)
 		swap_all_nlist64(array,sym);
-	new_lst = parse_symtab(array,info,sym);
+	new_lst = parse_symtab_64(array,info,sym);
 	if (new_lst)
 	{
 		ft_lstsort(&new_lst, sort_lst_nm);
@@ -74,45 +74,64 @@ int	create_lst_32(struct symtab_command *sym, t_inf_header info)
 	}
 	return (EXIT_SUCCESS);
 }
-int	print_output_32(struct symtab_command *sym,  t_inf_header info)
+
+char *ft_get_name_32(char type, struct nlist list, t_inf_header info, void *stringtable)
 {
-	uint32_t				i;
-	char			*stringtable;
-	struct nlist	*array;
+	if (type == 'I')
+	{
+		if (stringtable + list.n_value < info.file || stringtable + list.n_value > info.file + info.size)
+		return ("?");
+		else
+			return(stringtable + list.n_value);
+	}
+	if (stringtable + list.n_un.n_strx < info.file || stringtable + list.n_un.n_strx > info.file + info.size)
+		return (g_badstring);
+	else
+		return (stringtable + list.n_un.n_strx);
+}
+t_list	*parse_symtab_32(struct nlist*array, t_inf_header info,struct symtab_command *sym)
+{
+	uint32_t	i;
 	t_list	*new_lst;
 	t_symbol new;
+	char	*stringtable;
 
-	if (info.swap)
-		swap_symtab_command(sym);
-	array = (void *)info.file + sym->symoff;
-	stringtable =(void *) info.file + sym->stroff;
-	if (addr_outof_range(info.file, info.size, array + sym->nsyms))
-		return (EXIT_FAILURE);
-	new_lst = NULL;
 	i = 0;
+	new_lst = NULL;
+	stringtable = info.file + sym->stroff;
 	while (i < sym->nsyms)
 	{
-		if (info.swap)
-			swap_nlist(&array[i],0);
-		if(addr_outof_range(info.file,info.size, stringtable + array[i].n_un.n_strx) && ++i)
-			continue ;
 		if(array[i].n_type & N_STAB && ++i)
 			continue;
+		if ((new.sym_type = ft_get_type_32(array[i], info)) == 1) // => free
+			return (NULL);
+		new.sym_name = ft_get_name_32(new.sym_type, array[i], info, stringtable);
 		new.n_value = array[i].n_value;
-		new.sym_type = ft_get_type(array[i], info);
-		new.sym_name = stringtable + array[i].n_un.n_strx;
-		new.n_value = array[i].n_value;
-		new.cpu_type = 32;
-		if (new.sym_type == 'I')
-		{
-			new.n_value_name = stringtable + array[i].n_value;
-			new.n_value = 0;
-		}
+		new.cpu_type = 64;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 		i++;
 	}
+	return (new_lst);
+}
+
+int	create_lst_32(struct symtab_command *sym,  t_inf_header info)
+{
+	char			*stringtable;
+	struct nlist	*array;
+	t_list	*new_lst;
+
+	array = (void *)info.file + sym->symoff;
+	stringtable =(void *) info.file + sym->stroff;
+	if (addr_outof_range(info, array + sym->nsyms))
+		return (EXIT_FAILURE);
+	if (info.swap)
+		swap_all_nlist(array,sym);
+	new_lst = parse_symtab_32(array,info,sym);
+	if (new_lst)
+	{
 	ft_lstsort(&new_lst, sort_lst_nm);
 	ft_lstiter(new_lst,show_list);
+	}
 	return (EXIT_SUCCESS);
 }
 
@@ -137,7 +156,7 @@ int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64)
 	{
 		 if(info.swap)
 			swap_load_command(lc);
-		if (addr_outof_range(info.file,info.size, lc) || lc->cmdsize % modulo != 0)
+		if (addr_outof_range(info, lc) || lc->cmdsize % modulo != 0)
 		{
 		ft_putstr_fd("Error segment ",2);
 		ft_putnbr_fd(i - 1,2);
@@ -164,10 +183,10 @@ int	handle_64(t_inf_header info)
 		return(EXIT_FAILURE);
 	while (i++ < header->ncmds)
 	{
-		if (addr_outof_range(info.file,info.size, lc))
+		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SYMTAB)
-			return(create_lst_32((struct symtab_command *)lc, info));
+			return(create_lst_64((struct symtab_command *)lc, info));
 		lc = (void *) lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
@@ -188,10 +207,10 @@ int	handle_32(t_inf_header info)
 		return(EXIT_FAILURE);
 	while (i++ < header->ncmds)
 	{
-		if (addr_outof_range(info.file,info.size, lc))
+		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SYMTAB)
-			return(print_output_32((struct symtab_command *)lc, info) == EXIT_FAILURE);
+			return(create_lst_32((struct symtab_command *)lc, info) == EXIT_FAILURE);
 		lc = (void *) lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
@@ -248,34 +267,33 @@ void print_arch(struct fat_arch *arch)
 		ft_putstr("powerpc64");
 }
 
-int	print_all_fat(struct fat_header *header,size_t size, char *av)
+int	print_all_fat(t_inf_header info)
 {
 
 	uint32_t						i;
 	struct fat_arch		*arch;
+	struct fat_header	*header;
 
-
-	if (size)
-		;
+	header = info.file;
 	i = 0;
 	arch = (void *)header + sizeof(struct fat_header);
 	while (i++ < header->nfat_arch)
 	{
-		if (addr_outof_range(header,size,(void *)header + arch->offset + arch->size))
+		if (addr_outof_range(info,(void *)header + arch->offset + arch->size))
 			return (1);
 		ft_putchar('\n');
-		ft_putstr(av);
+		ft_putstr(info.filename);
 		ft_putstr(" (for architecture ");
 		print_arch(arch);
 		ft_putstr("):\n");
-		if (nm((void *)header + arch->offset,arch->size,av) == EXIT_FAILURE)
+		if (nm((void *)header + arch->offset,arch->size,info.filename) == EXIT_FAILURE)
 			return (EXIT_FAILURE);
 		arch++;
 	}
 	return (EXIT_SUCCESS);
 }
 
-int	handle_fat(char *ptr, size_t size, char *av)
+int	handle_fat(t_inf_header info)
 {
 	uint32_t						i;
 	struct fat_header	*header;
@@ -283,30 +301,28 @@ int	handle_fat(char *ptr, size_t size, char *av)
 	bool	swap;
 	int index;
 
-	header = (struct fat_header *)ptr;
+	header = (struct fat_header *)info.file;
 	arch = (void *)header + sizeof(struct fat_header);
 	swap = 0;
 	i = 0 ;
-	if (header->magic == FAT_CIGAM)
-	{
+	if (header->magic == FAT_CIGAM && (swap = 1))
 		swap_header(header, 3);
-		swap = 1;
-	}
-	if (addr_outof_range(ptr, size, arch +  header->nfat_arch))
+	if (addr_outof_range(info, arch +  header->nfat_arch))
 		return (EXIT_FAILURE);
 	if ((index = position_header(header, CPU_TYPE_X86_64,swap)) != -1)
 	{
 		arch += index;
-		if (addr_outof_range(ptr, size, ptr + arch->offset + arch->size))
+		if (addr_outof_range(info, info.file + arch->offset + arch->size))
 			return (EXIT_FAILURE);
-		return(nm(ptr + arch->offset, arch->size,av));
+		return(nm(info.file + arch->offset, arch->size,info.filename));
 	}
-	print_all_fat(header, size,av);
+	print_all_fat(info);
 	return (EXIT_SUCCESS);
 }
-bool addr_outof_range(void *start, size_t size, void *ptr)
+
+bool addr_outof_range(t_inf_header info, void *ptr)
 {
-	if (ptr < start || ptr > start + size)
+	if (ptr < info.file || ptr > info.file + info.size)
 	{
 		ft_putstr_fd("Error out of range\n",2);
 		return (EXIT_FAILURE);
@@ -407,7 +423,7 @@ int	nm(char *ptr,size_t size,char *av)
 	else if (inf_header.type == 2)
 		return (handle_64(inf_header));
 	else if (inf_header.type == 3)
-		return (handle_fat(ptr,size,av));
+		return (handle_fat(inf_header));
 	else if (inf_header.type == 4)
 		return(handle_ar(inf_header));
 	return (EXIT_FAILURE);
