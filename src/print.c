@@ -1,5 +1,37 @@
 #include "../inc/ft_nm.h"
 
+void print_arch(struct fat_arch *arch)
+{
+	if (arch->cputype == CPU_TYPE_VAX)
+		ft_putstr("any");
+	else if (arch->cputype == CPU_TYPE_VAX)
+		ft_putstr("vax");
+	else if (arch->cputype == CPU_TYPE_MC680x0)
+		ft_putstr("mc680x0");
+	else if (arch->cputype == CPU_TYPE_I386)
+		ft_putstr("i386");
+	else if (arch->cputype == CPU_TYPE_X86_64)
+		ft_putstr("x86_64");
+	else if (arch->cputype == CPU_TYPE_HPPA)
+		ft_putstr("hppa");
+	else if (arch->cputype == CPU_TYPE_ARM)
+		ft_putstr("arm");
+	else if (arch->cputype == CPU_TYPE_MC88000)
+		ft_putstr("mc88000");
+	else if (arch->cputype == CPU_TYPE_SPARC)
+		ft_putstr("sparc");
+	else if (arch->cputype == CPU_TYPE_I860)
+		ft_putstr("i860");
+	else if (arch->cputype == CPU_TYPE_MC98000)
+		ft_putstr("mc98000");
+	else if (arch->cputype == CPU_TYPE_POWERPC)
+		ft_putstr("ppc");
+	else if (arch->cputype == CPU_ARCH_ABI64)
+		ft_putstr("abi64");
+	else if (arch->cputype == CPU_TYPE_POWERPC64)
+		ft_putstr("powerpc64");
+}
+
 static void	print_n_value(t_symbol *sym, short type_cpu)
 {
 	char string[17];

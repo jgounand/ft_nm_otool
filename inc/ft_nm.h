@@ -54,4 +54,17 @@ void	swap_nlist(void *ptr, bool type_64);
 void	swap_segment_command(void *segment, bool type_64);
 void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym);
 void	swap_all_nlist(struct nlist *array, struct symtab_command *sym);
+
+int	sort_lst_nm(void	*content, void	*content_next);
+int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64);
+
+int	handle_32(t_inf_header info);
+int	handle_64(t_inf_header info);
+int	handle_fat(t_inf_header info);
+int	handle_ar(t_inf_header info);
+
+
+
+void print_arch(struct fat_arch *arch);
+t_inf_header	get_type_cpu(char *ptr, size_t size);
 #endif
