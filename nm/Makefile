@@ -13,7 +13,7 @@ LIBFT_NAME =	ft
 
 LIBFT =			$(LIBFT_DIR)lib$(LIBFT_NAME).a
 
-LIBFT_DIR =		./libft/
+LIBFT_DIR =		./../libft/
 
 SRC_DIR =		./src/
 
@@ -40,22 +40,22 @@ $(OBJ_PATHS): $(OBJ_DIR)%.o: $(SRC_DIR)%.c ./inc/ft_nm.h
 	@$(CC) -c $(FLAGS) $(HEADERS) $< -o $@
 
 libft:
-	@Make -C ./libft/
+	@Make -C ../libft/
 
 $(LIBFT) ./libft/:
-	@Make -C ./libft/
+	@Make -C ../libft/
 
 clean:
 	@echo "\033[0;32m[OK] \033[0m       \033[0;33m Deleting objects in:\033[0m $(NAME)" 
 	@/bin/rm -rf $(OBJ_DIR)
-	@make -C libft/ clean
+	@make -C ../libft/ clean
 	@/usr/bin/find . -name "$(OBJ_DIR_NAME)" -maxdepth 1 -type d -empty -delete
 
 fclean:
 	@echo "\033[0;32m[OK] \033[0m       \033[0;33m Deleting objects in:\033[0m $(NAME)" 
 	@/bin/rm -rf $(OBJ_DIR)
 	@echo "\033[2K\r\033[0;32m[OK] \033[0m       \033[0;33m $(NAME) deleted ✅\033[0m"
-	@Make fclean -C ./libft/
+	@Make fclean -C ../libft/
 	@/bin/rm -f $(NAME)
 
 re: fclean all

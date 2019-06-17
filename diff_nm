@@ -1,6 +1,0 @@
-#!/bin/bash
-./ft_nm ./test/hell/$1 | /bin/cat -n> /tmp/ft_nm ;
-nm ./test/hell/$1 | /bin/cat -n > /tmp/nm;
-
-diff /tmp/ft_nm /tmp/nm  > /tmp/diff;
-cat /tmp/diff;
