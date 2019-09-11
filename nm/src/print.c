@@ -49,7 +49,9 @@ static void	print_n_value(t_symbol *sym, short type_cpu)
 		free(n_value_string);
 	}
 	if (type_cpu == 32)
+	{
 		ft_putstr(string + 8);
+	}
 	else
 		ft_putstr(string);
 	ft_putchar(' ');

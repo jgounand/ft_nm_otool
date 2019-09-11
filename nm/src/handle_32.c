@@ -31,8 +31,9 @@ static t_list	*parse_symtab_32(struct nlist*array, t_inf_header info,struct symt
 		if ((new.sym_type = ft_get_type_32(array[i], info)) == 1) // => free
 			return (NULL);
 		new.sym_name = ft_get_name_32(new.sym_type, array[i], info, stringtable);
+		printf("name :%s\n",new.sym_name);
 		new.n_value = array[i].n_value;
-		new.cpu_type = 64;
+		new.cpu_type = 32;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 		i++;
 	}
@@ -45,6 +46,8 @@ static int	create_lst_32(struct symtab_command *sym,  t_inf_header info)
 	struct nlist	*array;
 	t_list	*new_lst;
 
+	if (info.swap)
+		swap_symtab_command(sym);
 	array = (void *)info.file + sym->symoff;
 	stringtable =(void *) info.file + sym->stroff;
 	if (addr_outof_range(info, array + sym->nsyms))
@@ -54,8 +57,8 @@ static int	create_lst_32(struct symtab_command *sym,  t_inf_header info)
 	new_lst = parse_symtab_32(array,info,sym);
 	if (new_lst)
 	{
-	ft_lstsort(&new_lst, sort_lst_nm);
-	ft_lstiter(new_lst,show_list);
+		ft_lstsort(&new_lst, sort_lst_nm);
+		ft_lstiter(new_lst,show_list);
 	}
 	return (EXIT_SUCCESS);
 }
@@ -68,6 +71,7 @@ int	handle_32(t_inf_header info)
 
 	i = 0;
 	header = (struct mach_header *)info.file;
+	printf("struct :%p swap %d\n",header, info.swap);
 	lc = (void *)info.file + sizeof(*header);
 	if (info.swap)
 		swap_header(header,info.type);

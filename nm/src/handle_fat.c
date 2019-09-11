@@ -56,7 +56,7 @@ int	handle_fat(t_inf_header info)
 	i = 0 ;
 	if (info.swap)
 		swap_header(header, 3);
-	if (addr_outof_range(info, arch +  header->nfat_arch))
+	if (addr_outof_range(info, (void *)arch +  header->nfat_arch))
 		return (EXIT_FAILURE);
 	if ((index = position_header(header, CPU_TYPE_X86_64,info.swap)) != -1)
 	{

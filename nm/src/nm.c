@@ -42,18 +42,18 @@ int	open_mmmap_work_close(char *path)
 
 	if ((fd = open(path, O_RDONLY)) < 0 || fstat(fd,&buf) < 0)
 	{
-		printf("ERROR open !\n");
+		ft_putstr_fd("ERROR open !\n",2);
 		return (EXIT_FAILURE);
 	}
 	if ((file = mmap(0, buf.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
 	{
-		printf("ERROR mmap !");
+		ft_putstr_fd("ERROR munmap !\n",2);
 		return (EXIT_FAILURE);
 	}
 	int i = nm(file,buf.st_size,path);
 	if (munmap(file, buf.st_size) < 0)
 	{
-		printf("ERROR munmap !");
+		ft_putstr_fd("ERROR munmap !\n",2);
 		return (EXIT_FAILURE);
 	}
 	return (i);
@@ -69,9 +69,10 @@ int	parse_av(int ac, char **av)
 	i = 1;
 	while (i < ac)
 	{
-		ft_putchar('\n');
-		ft_putstr(av[i]);
-		ft_putstr(":\n");
+		//Regarder quand affficher le nom ou pas
+		//ft_putchar('\n');
+		//ft_putstr(av[i]);
+		//ft_putstr(":\n");
 		if (!exit)
 			exit = open_mmmap_work_close(av[i]);
 		else

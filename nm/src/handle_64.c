@@ -46,6 +46,8 @@ static int	create_lst_64(struct symtab_command *sym, t_inf_header info)
 	struct nlist_64	*array;
 	t_list	*new_lst;
 
+	if (info.swap)
+		swap_symtab_command(sym);
 	array = (void *)info.file + sym->symoff;
 	if (addr_outof_range(info, array + sym->nsyms))
 		return (EXIT_FAILURE);

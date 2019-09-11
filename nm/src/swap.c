@@ -2,7 +2,7 @@
 #include "../inc/ft_nm.h"
 void	swap_header(void *header, short type)
 {
-	struct mach_header	*_32;
+	struct mach_header		*_32;
 	struct mach_header_64	*_64;
 	struct fat_header		*fat;
 	
@@ -48,8 +48,8 @@ void	swap_load_command(struct load_command *lc)
 }
 void	swap_symtab_command(struct symtab_command *sym)
 {
-	sym->cmd = __builtin_bswap32(sym->cmd);
-	sym->cmdsize = __builtin_bswap32(sym->cmdsize);
+	//sym->cmd = __builtin_bswap32(sym->cmd);
+	//sym->cmdsize = __builtin_bswap32(sym->cmdsize);
 	sym->symoff = __builtin_bswap32(sym->symoff);
 	sym->nsyms = __builtin_bswap32(sym->nsyms);
 	sym->stroff = __builtin_bswap32(sym->stroff);
