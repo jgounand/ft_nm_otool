@@ -2,6 +2,7 @@
 
 static char *ft_get_name_32(char type, struct nlist list, t_inf_header info, void *stringtable)
 {
+	//printf("arr[i] %p value %d\n",&list, list.n_value);
 	if (type == 'I')
 	{
 		if (stringtable + list.n_value < info.file || stringtable + list.n_value > info.file + info.size)
@@ -9,6 +10,9 @@ static char *ft_get_name_32(char type, struct nlist list, t_inf_header info, voi
 		else
 			return(stringtable + list.n_value);
 	}
+	//printf("stringtable + strx %p info.file max%p\n",stringtable + list.n_un.n_strx, info.file + info.size);
+		//printf("value %d \n",list.n_value);
+		
 	if (stringtable + list.n_un.n_strx < info.file || stringtable + list.n_un.n_strx > info.file + info.size)
 		return ("bad string index");
 	else
@@ -24,14 +28,18 @@ static t_list	*parse_symtab_32(struct nlist*array, t_inf_header info,struct symt
 	i = 0;
 	new_lst = NULL;
 	stringtable = info.file + sym->stroff;
+	//printf("stringtable %p info.file + sym->stroff %p\n",stringtable, info.file + info.size);
+	printf("---->\n");
 	while (i < sym->nsyms)
 	{
 		if(array[i].n_type & N_STAB && ++i)
 			continue;
+		if (info.swap)
+	//printf("arr[i] %p\n",&array[i]);
 		if ((new.sym_type = ft_get_type_32(array[i], info)) == 1) // => free
 			return (NULL);
 		new.sym_name = ft_get_name_32(new.sym_type, array[i], info, stringtable);
-		printf("name :%s\n",new.sym_name);
+		//printf("name :%s\n",new.sym_name);
 		new.n_value = array[i].n_value;
 		new.cpu_type = 32;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));

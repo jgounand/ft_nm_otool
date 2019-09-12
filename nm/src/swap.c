@@ -56,21 +56,21 @@ void	swap_symtab_command(struct symtab_command *sym)
 	sym->strsize = __builtin_bswap32(sym->strsize);
 }
 
-void	swap_nlist(void *ptr, bool type_64)
+void	swap_nlist(void **ptr, bool type_64)
 {
 	struct nlist_64	*_64;
 	struct nlist	*_32;
 
 	if (type_64)
 	{
-		_64 = ptr;
+		_64 = *ptr;
 		_64->n_un.n_strx = __builtin_bswap32(_64->n_un.n_strx);
 		_64->n_desc = __builtin_bswap16(_64->n_desc);
 		_64->n_value = __builtin_bswap64(_64->n_value);
 	}
 	else
 	{
-		_32 = ptr;
+		_32 = *ptr;
 		_32->n_un.n_strx = __builtin_bswap32(_32->n_un.n_strx);
 		_32->n_desc = __builtin_bswap16(_32->n_desc);
 		_32->n_value = __builtin_bswap32(_32->n_value);
@@ -102,7 +102,8 @@ void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym)
 	i = 0;
 	while (i < sym->nsyms)
 	{
-		swap_nlist(&array,1);
+		swap_nlist((void **)&array,1);
+		array++;
 		i++;
 	}
 }
@@ -113,7 +114,8 @@ void	swap_all_nlist(struct nlist *array, struct symtab_command *sym)
 	i = 0;
 	while (i < sym->nsyms)
 	{
-		swap_nlist(&array,0);
+		swap_nlist((void **)&array,0);
+		array++;
 		i++;
 	}
 }
