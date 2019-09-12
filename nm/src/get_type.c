@@ -16,7 +16,7 @@ static char						st_find_char(struct segment_command *segment,
 	sect = (struct section *)((char *)segment
 			+ sizeof(struct segment_command));
 	sect += index;
-	//printf("seg name %s sec name %s\n",sect->segname, sect->sectname);
+	printf("index %d ,seg name %s sec name %s ",index, sect->segname, sect->sectname);
 	if (!ft_strcmp(sect->sectname, SECT_BSS))
 		return ('b');
 	if (!ft_strcmp(sect->sectname, SECT_DATA))
@@ -26,21 +26,78 @@ static char						st_find_char(struct segment_command *segment,
 	return ('s');
 }
 
-static void	swap_all_segment(struct load_command *cmd, struct mach_header *header)
+static size_t get_nbr_section(size_t ncmds,struct load_command *cmd, bool swap)
 {
-uint32_t	i;
-struct segment_command *segment;
+	struct segment_command	*segment;
+	unsigned int				index[2];
 
-	i = 0;
-	while (i++ < header->ncmds)
+	index[0] = 0;
+	index[1] = 0;
+	while (index[0]++ < ncmds)
 	{
-		if (cmd->cmd == LC_SEGMENT_64)
+		if (cmd->cmd == LC_SEGMENT)
 		{
 			segment = (struct segment_command *)cmd;
-			swap_segment_command(segment,1);
+				//return(st_find_char(segment, symbol.n_sect - index[1]));
+			if (swap)
+				swap_segment_command(segment,0);
+			index[1] += segment->nsects;
 		}
 		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
 	}
+	return (index[1]);
+}
+
+static void	fil_tab_section_from_seg(struct segment_command *segment, void**ptr, size_t nsects)
+{
+	struct section *sect;
+	struct section **tmp2;
+	void *tmp;
+
+	tmp = *ptr;
+	sect = (struct section *)((char *)segment
+			+ sizeof(struct segment_command));
+	printf("nsects %ld\n",nsects);
+	while (nsects--)
+	{
+		tmp = &sect;
+		tmp2 = tmp;
+	printf("seg name %s sec name %s tmp %p\n", (*tmp2)->segname, sect->sectname,tmp);
+		tmp++;
+		sect++;
+	}
+}
+
+static void	fil_tab_section(t_inf_header info, void **tab, struct load_command *cmd)
+{
+
+	struct mach_header		*header;
+	struct segment_command	*segment;
+	size_t				index[2];
+
+	*tab = *tab;
+	index[0] = 0;
+	index[1] = 0;
+	header = (struct mach_header *)info.file;
+
+	while (index[0]++ < header->ncmds)
+	{
+		if (cmd->cmd == LC_SEGMENT)
+		{
+			segment = (struct segment_command *)cmd;
+				//return(st_find_char(segment, symbol.n_sect - index[1]));
+			if (info.swap)
+				swap_segment_command(segment,0);
+			if (segment->nsects)
+				fil_tab_section_from_seg(segment, (*tab) + index[1], segment->nsects);
+			index[1] += segment->nsects;
+		}
+		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
+	}
+	struct section **tmp2;
+	tmp2 = *tab;
+	printf("seg name %s sec name %s \n", (*tmp2)->segname, (*tmp2)->sectname);
+	printf("sect 2 %ld\n",index[1]);
 }
 
 static char	find_type(struct nlist symbol, t_inf_header info)
@@ -48,26 +105,23 @@ static char	find_type(struct nlist symbol, t_inf_header info)
 	struct load_command			*cmd;
 	struct mach_header		*header;
 	struct segment_command	*segment;
+	size_t					size;
 	unsigned int				index[2];
+	void *tab_section;
 
 	header = (struct mach_header *)info.file;
 	index[0] = 0;
-	index[1] = 1;
+	index[1] = 0;
 	cmd = (struct load_command *)(((char *)info.file)
 			+ sizeof(struct mach_header));
-	if (info.swap)
-		swap_all_segment(cmd,header);
-	while (index[0]++ < header->ncmds)
-	{
-		if (cmd->cmd == LC_SEGMENT)
-		{
-			segment = (struct segment_command *)cmd;
-			if (segment->nsects && index[1] + segment->nsects > symbol.n_sect)
+	printf("nbr nsects %ld\n",get_nbr_section(header->ncmds, cmd,info.swap));
+	size = get_nbr_section(header->ncmds, cmd, info.swap);
+	tab_section = malloc(sizeof(void *) * size);
+	fil_tab_section(info,&tab_section,cmd);
+			if (0)
 				return(st_find_char(segment, symbol.n_sect - index[1]));
-			index[1] += segment->nsects;
-		}
-		cmd = (struct load_command *)(((char *)cmd) + cmd->cmdsize);
-	}
+	
+	exit(1);
 	return ('s');
 }
 

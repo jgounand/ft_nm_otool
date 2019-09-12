@@ -1,7 +1,7 @@
 NAME =			ft_nm
 
 
-CC =			gcc
+CC =			gcc -g
 
 FLAGS =			-Wall -Werror -Wextra
 

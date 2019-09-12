@@ -64,7 +64,6 @@ int	handle_fat(t_inf_header info);
 int	handle_ar(t_inf_header info);
 
 
-
 void print_arch(struct fat_arch *arch);
 t_inf_header	get_type_cpu(char *ptr, size_t size);
 #endif

@@ -24,7 +24,7 @@ static char	find_char_64(struct segment_command_64 *segment,
 	return ('s');
 }
 
-static void	swap_all_segment(struct load_command *cmd, struct mach_header_64 *header)
+static void	swap_all_segment_64(struct load_command *cmd, struct mach_header_64 *header)
 {
 uint32_t	i;
 struct segment_command_64 *segment;
@@ -53,7 +53,7 @@ static char	find_type_64(struct nlist_64 symbol, t_inf_header info)
 	index[1] = 1;
 	cmd = (struct load_command *)(((char *)info.file) + sizeof(*header));
 	if (info.swap)
-		swap_all_segment(cmd,header);
+		swap_all_segment_64(cmd,header);
 	while (index[0]++ < header->ncmds)
 	{
 		if (cmd->cmd == LC_SEGMENT_64)

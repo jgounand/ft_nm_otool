@@ -29,19 +29,20 @@ static t_list	*parse_symtab_32(struct nlist*array, t_inf_header info,struct symt
 	new_lst = NULL;
 	stringtable = info.file + sym->stroff;
 	//printf("stringtable %p info.file + sym->stroff %p\n",stringtable, info.file + info.size);
-	printf("---->\n");
 	while (i < sym->nsyms)
 	{
 		if(array[i].n_type & N_STAB && ++i)
 			continue;
-		if (info.swap)
+		//if (info.swap)
 	//printf("arr[i] %p\n",&array[i]);
 		if ((new.sym_type = ft_get_type_32(array[i], info)) == 1) // => free
 			return (NULL);
 		new.sym_name = ft_get_name_32(new.sym_type, array[i], info, stringtable);
-		//printf("name :%s\n",new.sym_name);
+		printf("name %s\n",new.sym_name);
 		new.n_value = array[i].n_value;
 		new.cpu_type = 32;
+		if (!strcmp(new.sym_name, "_AudioHardwareServiceSetPropertyDataPtr"))
+		;//	exit(4);
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 		i++;
 	}
@@ -79,7 +80,7 @@ int	handle_32(t_inf_header info)
 
 	i = 0;
 	header = (struct mach_header *)info.file;
-	printf("struct :%p swap %d\n",header, info.swap);
+	//printf("struct :%p swap %d\n",header, info.swap);
 	lc = (void *)info.file + sizeof(*header);
 	if (info.swap)
 		swap_header(header,info.type);
