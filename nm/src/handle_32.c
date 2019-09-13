@@ -38,11 +38,11 @@ static t_list	*parse_symtab_32(struct nlist*array, t_inf_header *info,struct sym
 		if ((new.sym_type = ft_get_type_32(array[i], info)) == 1) // => free
 			return (NULL);
 		new.sym_name = ft_get_name_32(new.sym_type, array[i], info, stringtable);
-		printf("name %s %c\n",new.sym_name,new.sym_type);
+		//printf("name %s %c\n",new.sym_name,new.sym_type);
 		new.n_value = array[i].n_value;
 		new.cpu_type = 32;
 		if (!strcmp(new.sym_name, "_AudioHardwareServiceSetPropertyDataPtr"))
-		;//	exit(4);
+		;//exit(5);
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 		i++;
 	}

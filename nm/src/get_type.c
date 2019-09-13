@@ -11,7 +11,7 @@ static char						st_set_upper(char c, struct nlist symbol)
 
 static char						st_find_char(struct section *sect)
 {
-	printf("sectname %s\n",sect->sectname);
+	//printf("sectname %s segname %s\n",sect->sectname, sect->segname);
 	if (!ft_strcmp(sect->sectname, SECT_BSS))
 		return ('b');
 	if (!ft_strcmp(sect->sectname, SECT_DATA))
@@ -36,9 +36,9 @@ static size_t get_nbr_section(size_t ncmds,struct load_command *cmd, bool swap)
 				//return(st_find_char(segment, symbol.n_sect - index[1]));
 			if (swap)
 			{
-			printf("1\tsegment->nsects %d %p\n",segment->nsects, segment);
+			//printf("1\tsegment->nsects %d %p\n",segment->nsects, segment);
 				swap_segment_command(segment,0);
-			printf("2\tsegment->nsects %d %p\n",segment->nsects, segment);
+			//printf("2\tsegment->nsects %d %p\n",segment->nsects, segment);
 			}
 			index[1] += segment->nsects;
 		}
@@ -55,8 +55,8 @@ static void	fil_tab_section_from_seg(struct segment_command *segment, void**ptr,
 
 	sect = (struct section *)((char *)segment
 			+ sizeof(struct segment_command));
-	printf("nsects %ld\n",nsects);
-	printf("first i %ld\n", i);
+	//printf("nsects %ld\n",nsects);
+	//printf("first i %ld\n", i);
 	j = 0;
 	while (j++ < nsects)
 	{
@@ -108,13 +108,13 @@ static char	find_type(struct nlist symbol, t_inf_header *info)
 			+ sizeof(struct mach_header));
 	if (!info->tab_section)
 	{
-		ft_putnbr(header->ncmds);
+		//ft_putnbr(header->ncmds);
 		info->size_section = get_nbr_section(header->ncmds, cmd, info->swap);
 		info->tab_section = malloc(sizeof(void *) * info->size);
 		fil_tab_section(info,cmd);
 	}
 	if (symbol.n_sect <= info->size)
-		return(st_find_char(info->tab_section[symbol.n_sect]));
+		return(st_find_char(info->tab_section[symbol.n_sect - 1]));
 	return ('s');
 }
 
