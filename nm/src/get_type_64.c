@@ -41,18 +41,18 @@ struct segment_command_64 *segment;
 	}
 }
 
-static char	find_type_64(struct nlist_64 symbol, t_inf_header info)
+static char	find_type_64(struct nlist_64 symbol, t_inf_header *info)
 {
 	struct load_command			*cmd;
 	struct mach_header_64		*header;
 	struct segment_command_64	*segment;
 	unsigned int				index[2];
 
-	header = (struct mach_header_64 *)info.file;
+	header = (struct mach_header_64 *)info->file;
 	index[0] = 0;
 	index[1] = 1;
-	cmd = (struct load_command *)(((char *)info.file) + sizeof(*header));
-	if (info.swap)
+	cmd = (struct load_command *)(((char *)info->file) + sizeof(*header));
+	if (info->swap)
 		swap_all_segment_64(cmd,header);
 	while (index[0]++ < header->ncmds)
 	{
@@ -68,7 +68,7 @@ static char	find_type_64(struct nlist_64 symbol, t_inf_header info)
 	return ('s');
 }
 
-char		ft_get_type_64(struct nlist_64 symbol, t_inf_header info)
+char		ft_get_type_64(struct nlist_64 symbol, t_inf_header *info)
 {
 	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
 		return (set_upper_64(find_type_64(symbol, info), symbol));

@@ -24,6 +24,8 @@ typedef struct s_inf_header
 	void	*file;
 	size_t	size;
 	char	*filename;
+	void	**tab_section;
+	size_t	size_section;
 }		t_inf_header;
 
 typedef struct s_symbol
@@ -37,9 +39,9 @@ typedef struct s_symbol
 }		t_symbol;
 
 
-bool addr_outof_range(t_inf_header info, void *ptr);
-char							ft_get_type_64(struct nlist_64 symbol, t_inf_header info);
-char							ft_get_type_32(struct nlist symbol, t_inf_header info);
+bool addr_outof_range(t_inf_header *info, void *ptr);
+char							ft_get_type_64(struct nlist_64 symbol, t_inf_header *info);
+char							ft_get_type_32(struct nlist symbol, t_inf_header *info);
 void	show_list(t_list *lst);
 
 t_inf_header	get_type(char *ptr, size_t size);
@@ -56,12 +58,12 @@ void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym);
 void	swap_all_nlist(struct nlist *array, struct symtab_command *sym);
 
 int	sort_lst_nm(void	*content, void	*content_next);
-int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64);
+int	check_load_command(uint32_t ncmds,void *header,t_inf_header *info, bool _64);
 
-int	handle_32(t_inf_header info);
-int	handle_64(t_inf_header info);
-int	handle_fat(t_inf_header info);
-int	handle_ar(t_inf_header info);
+int	handle_32(t_inf_header *info);
+int	handle_64(t_inf_header *info);
+int	handle_fat(t_inf_header *info);
+int	handle_ar(t_inf_header *info);
 
 
 void print_arch(struct fat_arch *arch);

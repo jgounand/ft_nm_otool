@@ -1,22 +1,22 @@
 
 #include "../inc/ft_nm.h"
 
-static char *ft_get_name_64(char type, struct nlist_64 list, t_inf_header info, void *stringtable)
+static char *ft_get_name_64(char type, struct nlist_64 list, t_inf_header *info, void *stringtable)
 {
 	if (type == 'I')
 	{
-		if (stringtable + list.n_value < info.file || stringtable + list.n_value > info.file + info.size)
+		if (stringtable + list.n_value < info->file || stringtable + list.n_value > info->file + info->size)
 		return ("?");
 		else
 			return(stringtable + list.n_value);
 	}
-	if (stringtable + list.n_un.n_strx < info.file || stringtable + list.n_un.n_strx > info.file + info.size)
+	if (stringtable + list.n_un.n_strx < info->file || stringtable + list.n_un.n_strx > info->file + info->size)
 		return ("bad string index");
 	else
 		return (stringtable + list.n_un.n_strx);
 }
 
-static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header info,struct symtab_command *sym)
+static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header *info,struct symtab_command *sym)
 {
 	uint32_t	i;
 	t_list	*new_lst;
@@ -25,7 +25,7 @@ static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header info,struct 
 
 	i = 0;
 	new_lst = NULL;
-	stringtable = info.file + sym->stroff;
+	stringtable = info->file + sym->stroff;
 	while (i < sym->nsyms)
 	{
 		if(array[i].n_type & N_STAB && ++i)
@@ -41,17 +41,17 @@ static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header info,struct 
 	return (new_lst);
 }
 
-static int	create_lst_64(struct symtab_command *sym, t_inf_header info)
+static int	create_lst_64(struct symtab_command *sym, t_inf_header *info)
 {
 	struct nlist_64	*array;
 	t_list	*new_lst;
 
-	if (info.swap)
+	if (info->swap)
 		swap_symtab_command(sym);
-	array = (void *)info.file + sym->symoff;
+	array = (void *)info->file + sym->symoff;
 	if (addr_outof_range(info, array + sym->nsyms))
 		return (EXIT_FAILURE);
-	if (info.swap)
+	if (info->swap)
 		swap_all_nlist64(array,sym);
 	new_lst = parse_symtab_64(array,info,sym);
 	if (new_lst)
@@ -63,17 +63,17 @@ static int	create_lst_64(struct symtab_command *sym, t_inf_header info)
 	return (EXIT_SUCCESS);
 }
 
-int	handle_64(t_inf_header info)
+int	handle_64(t_inf_header *info)
 {
 	uint32_t				i;
 	struct mach_header_64	*header;
 	struct load_command		*lc;
 
 	i = 0;
-	header = (struct mach_header_64 *)info.file;
-	lc = (void *)info.file + sizeof(*header);
-	if (info.swap)
-		swap_header(header, info.type);
+	header = (struct mach_header_64 *)info->file;
+	lc = (void *)info->file + sizeof(*header);
+	if (info->swap)
+		swap_header(header, info->type);
 	if (check_load_command(header->ncmds,header,info,1))
 		return(EXIT_FAILURE);
 	while (i++ < header->ncmds)

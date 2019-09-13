@@ -1,6 +1,6 @@
 
 #include "../inc/ft_nm.h"
-int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64)
+int	check_load_command(uint32_t ncmds,void *header,t_inf_header *info, bool _64)
 {
 	uint32_t	i;
 	struct	load_command	*lc;
@@ -13,7 +13,7 @@ int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64)
 	i = 0;
 	while (i++ < ncmds)
 	{
-		if(info.swap)
+		if(info->swap)
 			swap_load_command(lc);
 		if (addr_outof_range(info, lc) || lc->cmdsize % modulo != 0)
 		{
@@ -27,9 +27,9 @@ int	check_load_command(uint32_t ncmds,void *header,t_inf_header info, bool _64)
 	return (EXIT_SUCCESS);
 }
 
-bool addr_outof_range(t_inf_header info, void *ptr)
+bool addr_outof_range(t_inf_header *info, void *ptr)
 {
-	if (ptr < info.file || ptr > info.file + info.size)
+	if (ptr < info->file || ptr > info->file + info->size)
 	{
 		ft_putstr_fd("Error out of range\n",2);
 		return (EXIT_FAILURE);

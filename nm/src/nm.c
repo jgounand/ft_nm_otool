@@ -23,14 +23,16 @@ int	nm(char *ptr,size_t size,char *av)
 	inf_header.file = ptr;
 	inf_header.size = size;
 	inf_header.filename = av;
+	inf_header.tab_section = NULL;
+	inf_header.size_section = 0;
 	if (inf_header.type == 1)
-		return(handle_32(inf_header));
+		return(handle_32(&inf_header));
 	else if (inf_header.type == 2)
-		return (handle_64(inf_header));
+		return (handle_64(&inf_header));
 	else if (inf_header.type == 3)
-		return (handle_fat(inf_header));
+		return (handle_fat(&inf_header));
 	else if (inf_header.type == 4)
-		return(handle_ar(inf_header));
+		return(handle_ar(&inf_header));
 	return (EXIT_FAILURE);
 }
 
