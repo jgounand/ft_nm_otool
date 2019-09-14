@@ -54,6 +54,7 @@ static int	create_lst_64(struct symtab_command *sym, t_inf_header *info)
 	array = (void *)info->file + sym->symoff;
 	if (addr_outof_range(info, array + sym->nsyms))
 		return (EXIT_FAILURE);
+	printf("fdssfd\n");
 	if (info->swap)
 		swap_all_nlist64(array,sym);
 	new_lst = parse_symtab_64(array,info,sym);

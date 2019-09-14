@@ -6,6 +6,9 @@ int	ft_show_64(struct section_64 *sec,t_inf_header info)
 	uint32_t	i;
 
 	i = 0;
+
+	if (addr_outof_range(info, info.file + sec->offset + sec->size))
+		return (EXIT_FAILURE);
 	ft_putstr("Contents of (__TEXT,__text) section\n");
 	while (i < sec->size)
 	{
