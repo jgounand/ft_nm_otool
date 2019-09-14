@@ -6,7 +6,7 @@ static char *ft_get_name_64(char type, struct nlist_64 list, t_inf_header *info,
 	if (type == 'I')
 	{
 		if (stringtable + list.n_value < info->file || stringtable + list.n_value > info->file + info->size)
-		return ("?");
+		return ("bad string index");
 		else
 			return(stringtable + list.n_value);
 	}
@@ -34,6 +34,9 @@ static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header *info,struct
 			return (NULL);
 		new.sym_name = ft_get_name_64(new.sym_type, array[i], info, stringtable);
 		new.n_value = array[i].n_value;
+		//printf("value = %llu\t type %c\n",new.n_value,new.sym_type);
+		if (new.n_value == 1585267068851191808)
+		;//	exit (4);
 		new.cpu_type = 64;
 		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
 		i++;

@@ -38,7 +38,8 @@ static void	print_n_value(t_symbol *sym, short type_cpu)
 	char	*n_value_string;
 	
 	string[16] = '\0';
-	if (sym->sym_type == 'u' || sym->sym_type == 'U' || sym->sym_type == 'I' || sym->sym_type == 'i')
+	if (sym->sym_type == 'u' || sym->sym_type == 'U')
+	//if (sym->sym_type == 'u' || sym->sym_type == 'U' || sym->sym_type == 'I' || sym->sym_type == 'i')
 		ft_memset(string, ' ',16);
 	else
 	{
@@ -67,7 +68,7 @@ void	show_list(t_list *lst)
 		ft_putchar(content->sym_type);
 		ft_putchar(' ');
 		ft_putstr(content->sym_name);
-		if (content->sym_type == 'I')
+		if (content->sym_type == 'I' && content->n_value_name)
 		{
 			ft_putstr(" (indirect for ");
 			ft_putstr(content->n_value_name);

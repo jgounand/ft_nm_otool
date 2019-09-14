@@ -108,6 +108,7 @@ static char	find_type_64(struct nlist_64 symbol, t_inf_header *info)
 		info->tab_section = malloc(sizeof(void *) * info->size);
 		fil_tab_section_64(info,cmd);
 	}
+
 	if (symbol.n_sect <= info->size)
 		return(st_find_char_64(info->tab_section[symbol.n_sect - 1]));
 	return ('s');
@@ -115,8 +116,11 @@ static char	find_type_64(struct nlist_64 symbol, t_inf_header *info)
 
 char		ft_get_type_64(struct nlist_64 symbol, t_inf_header *info)
 {
+	//printf("nsect %d N_TYPE %d\n", symbol.n_sect, symbol.n_type & N_TYPE);
 	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
 		return (set_upper_64(find_type_64(symbol, info), symbol));
+	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_value && symbol.n_type & N_EXT)
+			return ('C');
 	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_sect == NO_SECT)
 	{
 		if (symbol.n_value)

@@ -122,6 +122,8 @@ char							ft_get_type_32(struct nlist symbol, t_inf_header *info)
 {
 	if ((symbol.n_type & N_TYPE) == N_SECT && symbol.n_sect != NO_SECT)
 		return (st_set_upper(find_type(symbol, info), symbol));
+	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_sect && symbol.n_type & N_EXT)
+			return ('C');
 	if ((symbol.n_type & N_TYPE) == N_UNDF && symbol.n_sect == NO_SECT)
 	{
 		if (symbol.n_value)
