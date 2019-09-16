@@ -8,6 +8,7 @@ int	otool(char *ptr,size_t size,char *av)
 	inf_header.file = ptr;
 	inf_header.size = size;
 	inf_header.filename = av;
+	printf("Type %d\n",inf_header.type);
 	if (inf_header.type == 1)
 		return(handle_32_ot(inf_header));
 	else if (inf_header.type == 2)
@@ -27,18 +28,18 @@ int	open_mmmap_work_close(char *path)
 
 	if ((fd = open(path, O_RDONLY)) < 0 || fstat(fd,&buf) < 0)
 	{
-		printf("ERROR open !\n");
+		ft_putstr_fd("ERROR open !\n",2);
 		return (EXIT_FAILURE);
 	}
 	if ((file = mmap(0, buf.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
 	{
-		printf("ERROR mmap !");
+		ft_putstr_fd("ERROR mmap !",2);
 		return (EXIT_FAILURE);
 	}
 	int i = otool(file,buf.st_size,path);
 	if (munmap(file, buf.st_size) < 0)
 	{
-		printf("ERROR munmap !");
+		ft_putstr_fd("ERROR munmap !",2);
 		return (EXIT_FAILURE);
 	}
 	return (i);

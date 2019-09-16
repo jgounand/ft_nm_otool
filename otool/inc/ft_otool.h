@@ -56,4 +56,6 @@ int	handle_fat_ot(t_inf_header info);
 int	handle_ar_ot(t_inf_header info);
 int	otool(char *ptr,size_t size,char *av);
 void	swap_fat_arch(struct fat_arch *arch);
+void	swap_segment_command(void *segment, bool type_64);
+void	swap_symtab_command(struct symtab_command *sym);
 #endif

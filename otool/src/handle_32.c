@@ -5,6 +5,7 @@ int	ft_show_32(struct section *sec,t_inf_header info)
 	uint32_t	i;
 
 	i = 0;
+	printf("ici\n");
 	if (addr_outof_range(info, info.file + sec->offset + sec->size))
 		return (EXIT_FAILURE);
 	ft_putstr("Contents of (__TEXT,__text) section\n");
@@ -32,13 +33,17 @@ int	handle_32_ot(t_inf_header info)
 	{
 		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
+	printf("header->ncmds %d\n",lc->cmd);
 		if (lc->cmd == LC_SEGMENT)
 		{
 			struct segment_command *seg = (void *)lc;
 			struct section *sec = (void *)lc + sizeof(*seg);
+			if (info.swap)
+				swap_segment_command(seg,32);
+	printf("segname %s section %s\n",seg->segname, sec->sectname);
 			if (!ft_strcmp(seg->segname, SEG_TEXT) && !ft_strcmp(sec->sectname, SECT_TEXT))
-			if (ft_show_32(sec,info) == EXIT_FAILURE)
-				return (EXIT_FAILURE);
+				if (ft_show_32(sec,info) == EXIT_FAILURE)
+					return (EXIT_FAILURE);
 		}
 		lc = (void *) lc + lc->cmdsize;
 	}

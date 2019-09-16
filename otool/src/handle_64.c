@@ -39,6 +39,8 @@ int	handle_64_ot(t_inf_header info)
 		{
 			struct segment_command_64 *seg = (void *)lc;
 			struct section_64 *sec = (void *)lc + sizeof(*seg);
+			if (info.swap)
+				swap_segment_command(seg,64);
 			if (!ft_strcmp(seg->segname, SEG_TEXT) || !ft_strcmp(sec->sectname, SECT_TEXT))
 			ft_show_64(sec,info);
 		}
