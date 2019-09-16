@@ -58,4 +58,5 @@ int	otool(char *ptr,size_t size,char *av);
 void	swap_fat_arch(struct fat_arch *arch);
 void	swap_segment_command(void *segment, bool type_64);
 void	swap_symtab_command(struct symtab_command *sym);
+void	swap_section(void *section, bool type);
 #endif

@@ -8,7 +8,6 @@ int	otool(char *ptr,size_t size,char *av)
 	inf_header.file = ptr;
 	inf_header.size = size;
 	inf_header.filename = av;
-	printf("Type %d\n",inf_header.type);
 	if (inf_header.type == 1)
 		return(handle_32_ot(inf_header));
 	else if (inf_header.type == 2)

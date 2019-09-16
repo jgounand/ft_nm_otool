@@ -1,12 +1,24 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_64.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/09/16 16:16:56 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/16 16:59:35 by jgounand         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../inc/ft_otool.h"
 
-int	ft_show_64(struct section_64 *sec,t_inf_header info)
+int			ft_show_64(struct section_64 *sec,t_inf_header info)
 {
 	uint32_t	i;
 
 	i = 0;
-
+	if (info.swap)
+		swap_section(sec,1);
 	if (addr_outof_range(info, info.file + sec->offset + sec->size))
 		return (EXIT_FAILURE);
 	ft_putstr("Contents of (__TEXT,__text) section\n");
@@ -18,7 +30,22 @@ int	ft_show_64(struct section_64 *sec,t_inf_header info)
 	return (EXIT_SUCCESS);
 }
 
-int	handle_64_ot(t_inf_header info)
+static int	handle_lc64(struct load_command *lc, t_inf_header info)
+{
+	struct segment_command_64	*seg;
+	struct section_64			*sec;
+
+	seg = (struct segment_command_64 *)lc;
+	sec = (void *)lc + sizeof(struct segment_command_64);
+	if (info.swap)
+		swap_segment_command(seg, 1);
+	if (!ft_strcmp(seg->segname, SEG_TEXT) ||
+			!ft_strcmp(sec->sectname, SECT_TEXT))
+		return (ft_show_64(sec, info));
+	return (EXIT_SUCCESS);
+}
+
+int			handle_64_ot(t_inf_header info)
 {
 	uint32_t				i;
 	struct mach_header_64	*header;
@@ -36,16 +63,9 @@ int	handle_64_ot(t_inf_header info)
 		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SEGMENT_64)
-		{
-			struct segment_command_64 *seg = (void *)lc;
-			struct section_64 *sec = (void *)lc + sizeof(*seg);
-			if (info.swap)
-				swap_segment_command(seg,64);
-			if (!ft_strcmp(seg->segname, SEG_TEXT) || !ft_strcmp(sec->sectname, SECT_TEXT))
-			ft_show_64(sec,info);
-		}
+			if (handle_lc64(lc, info) == EXIT_FAILURE)
+				return (EXIT_FAILURE);
 		lc = (void *) lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
 }
-

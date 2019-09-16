@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   swap.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/09/16 16:16:50 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/16 16:19:03 by jgounand         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../inc/ft_otool.h"
 void	swap_header(void *header, short type)
@@ -46,37 +57,6 @@ void	swap_load_command(struct load_command *lc)
 	lc->cmd = __builtin_bswap32(lc->cmd);
 	lc->cmdsize = __builtin_bswap32(lc->cmdsize);
 }
-void	swap_symtab_command(struct symtab_command *sym)
-{
-	sym->cmd = __builtin_bswap32(sym->cmd);
-	sym->cmdsize = __builtin_bswap32(sym->cmdsize);
-	sym->symoff = __builtin_bswap32(sym->symoff);
-	sym->nsyms = __builtin_bswap32(sym->nsyms);
-	sym->stroff = __builtin_bswap32(sym->stroff);
-	sym->strsize = __builtin_bswap32(sym->strsize);
-}
-
-void	swap_nlist(void *ptr, bool type_64)
-{
-	struct nlist_64	*_64;
-	struct nlist	*_32;
-
-	if (type_64)
-	{
-		_64 = ptr;
-		_64->n_un.n_strx = __builtin_bswap32(_64->n_un.n_strx);
-		_64->n_desc = __builtin_bswap16(_64->n_desc);
-		_64->n_value = __builtin_bswap64(_64->n_value);
-	}
-	else
-	{
-		_32 = ptr;
-		_32->n_un.n_strx = __builtin_bswap32(_32->n_un.n_strx);
-		_32->n_desc = __builtin_bswap16(_32->n_desc);
-		_32->n_value = __builtin_bswap32(_32->n_value);
-
-	}
-}
 
 void	swap_segment_command(void *segment, bool type_64)
 {
@@ -94,26 +74,23 @@ void	swap_segment_command(void *segment, bool type_64)
 		_32->nsects = __builtin_bswap32(_32->nsects);
 	}
 }
-
-void	swap_all_nlist64(struct nlist_64 *array, struct symtab_command *sym)
+void	swap_section(void *section, bool type)
 {
-	size_t	i;
 
-	i = 0;
-	while (i < sym->nsyms)
+	struct section_64	*_64;
+	struct section		*_32;
+
+	if (type)
 	{
-		swap_nlist(&array,1);
-		i++;
+		_64 = section;
+		_64->offset = __builtin_bswap32(_64->offset);
+		_64->size = __builtin_bswap32(_64->size);
 	}
-}
-void	swap_all_nlist(struct nlist *array, struct symtab_command *sym)
-{
-	size_t	i;
-
-	i = 0;
-	while (i < sym->nsyms)
+	else
 	{
-		swap_nlist(&array,0);
-		i++;
+		_32 = section;
+		_32->offset = __builtin_bswap32(_32->offset);
+		_32->size = __builtin_bswap32(_32->size);
+
 	}
 }

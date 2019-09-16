@@ -48,6 +48,7 @@ void				ft_printpad(char *str, bool _64)
 		++len;
 	}
 	ft_putstr(str);
+	ft_memdel((void **)&str);
 }
 int	ft_show_line(size_t addr, char *buff, size_t i, size_t size,bool _64)
 {
@@ -70,6 +71,7 @@ int	ft_show_line(size_t addr, char *buff, size_t i, size_t size,bool _64)
 		ft_putchar(' ');
 		i++;
 		y++;
+		ft_memdel(&tmp2);
 	}
 	if (i < size)
 		ft_putchar('\n');

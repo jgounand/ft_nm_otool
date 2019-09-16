@@ -1,51 +1,71 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_32.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/09/16 16:17:02 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/16 16:51:14 by jgounand         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../inc/ft_otool.h"
 
-int	ft_show_32(struct section *sec,t_inf_header info)
+static int	ft_show_32(struct section *sec, t_inf_header info)
 {
 	uint32_t	i;
 
 	i = 0;
-	printf("ici\n");
+	if (info.swap)
+		swap_section(sec, 0);
 	if (addr_outof_range(info, info.file + sec->offset + sec->size))
 		return (EXIT_FAILURE);
 	ft_putstr("Contents of (__TEXT,__text) section\n");
 	while (i < sec->size)
 	{
-		ft_show_line(sec->addr,info.file + sec->offset,i,sec->size,0);
+		ft_show_line(sec->addr, info.file + sec->offset, i, sec->size, 0);
 		i += 16;
 	}
 	return (EXIT_SUCCESS);
 }
-int	handle_32_ot(t_inf_header info)
+
+static int	handle_lc(struct load_command *lc, t_inf_header info)
 {
-	uint32_t				i;
+	struct segment_command	*seg;
+	struct section			*sec;
+
+	seg = (struct segment_command *)lc;
+	sec = (void *)lc + sizeof(struct segment_command);
+	if (info.swap)
+		swap_segment_command(seg, 0);
+	if (!ft_strcmp(seg->segname, SEG_TEXT) ||
+			!ft_strcmp(sec->sectname, SECT_TEXT))
+		return (ft_show_32(sec, info));
+	return (EXIT_SUCCESS);
+}
+
+int			handle_32_ot(t_inf_header info)
+{
+	uint32_t			i;
 	struct mach_header	*header;
-	struct load_command		*lc;
+	struct load_command	*lc;
 
 	i = 0;
 	header = (struct mach_header *)info.file;
 	lc = (void *)info.file + sizeof(*header);
 	if (info.swap)
 		swap_header(header, info.type);
-	if (check_load_command(header->ncmds,header,info,0))
-		return(EXIT_FAILURE);
+	if (check_load_command(header->ncmds, header, info, 0))
+		return (EXIT_FAILURE);
 	while (i++ < header->ncmds)
 	{
 		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
-	printf("header->ncmds %d\n",lc->cmd);
 		if (lc->cmd == LC_SEGMENT)
-		{
-			struct segment_command *seg = (void *)lc;
-			struct section *sec = (void *)lc + sizeof(*seg);
-			if (info.swap)
-				swap_segment_command(seg,32);
-	printf("segname %s section %s\n",seg->segname, sec->sectname);
-			if (!ft_strcmp(seg->segname, SEG_TEXT) && !ft_strcmp(sec->sectname, SECT_TEXT))
-				if (ft_show_32(sec,info) == EXIT_FAILURE)
-					return (EXIT_FAILURE);
-		}
-		lc = (void *) lc + lc->cmdsize;
+			if (handle_lc(lc, info) == EXIT_FAILURE)
+				return (EXIT_FAILURE);
+		lc = (void *)lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
 }

@@ -3,7 +3,7 @@ NAME =			ft_otool
 
 CC =			gcc
 
-FLAGS =			-Wall -Werror -Wextra
+FLAGS =			-Wall -Werror -Wextra -g
 
 HEADERS =		-I ./inc -I $(LIBFT_DIR)
 
