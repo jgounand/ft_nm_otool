@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 14:17:05 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 18:53:15 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 19:06:42 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static void	print_archive_file_name(char *filename, char *symbol)
 	write(1, filename, ft_strlen(filename));
 	write(1, "(", 1);
 	write(1, symbol, ft_strlen(symbol));
-	write(1, "):", 3);
+	write(1, "):\n", 1);
 }
 
 int			handle_ar(t_inf_header *info)
@@ -39,7 +39,6 @@ int			handle_ar(t_inf_header *info)
 		if (tmp + (ft_atoi(head->ar_size) + sizeof(*head)) > tmp + info->size)
 			return (EXIT_FAILURE);
 		print_archive_file_name(info->filename, str);
-		ft_putchar('\n');
 		len = ft_strlen(str);
 		while (!str[len++])
 			;
