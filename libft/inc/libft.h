@@ -6,7 +6,7 @@
 /*   By: jgounand <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/11/08 09:07:05 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 13:09:51 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 13:33:47 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,6 @@ t_list			*ft_lststr(t_list **lst, void *compare, int (*f)());
 pid_t			ft_fork();
 void			do_closedire(DIR *rep);
 char			**ft_split_whitespaces(const char *str);
-char	*ft_itoa_base(long long value, int base);
+char			*ft_itoa_base(long long value, int base);
 
 #endif

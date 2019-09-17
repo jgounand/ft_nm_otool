@@ -1,31 +1,43 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   is_magic_swap.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/09/17 14:29:54 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/17 14:36:35 by jgounand         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../inc/ft_nm.h"
 
-static int is_magic_64(uint32_t magic) {
-	return magic == MH_MAGIC_64 || magic == MH_CIGAM_64;
+static int		is_magic_64(uint32_t magic)
+{
+	return (magic == MH_MAGIC_64 || magic == MH_CIGAM_64);
 }
 
-static int is_magic_32(uint32_t magic) {
-	return magic == MH_MAGIC || magic == MH_CIGAM;
+static int		is_magic_32(uint32_t magic)
+{
+	return (magic == MH_MAGIC || magic == MH_CIGAM);
 }
 
-static int is_magic_fat(unsigned long magic) {
-	return magic == FAT_MAGIC || magic == FAT_CIGAM;
+static int		is_magic_fat(unsigned long magic)
+{
+	return (magic == FAT_MAGIC || magic == FAT_CIGAM);
 }
 
-static int is_magic_ar(char *magic) {
+static int		is_magic_ar(char *magic)
+{
 	if (ft_strnstr(magic, ARMAG, SARMAG))
 		return (1);
 	return (0);
 }
 
-int should_swap_bytes(uint32_t magic) {
-	return magic == MH_CIGAM || magic == MH_CIGAM_64 || magic == FAT_CIGAM;
-}
-
 t_inf_header	get_type_cpu(char *ptr, size_t size)
 {
 	t_inf_header	inf_header;
-	uint32_t	magic_number;
+	uint32_t		magic_number;
 
 	magic_number = *(int *)ptr;
 	ft_bzero(&inf_header, sizeof(t_inf_header));

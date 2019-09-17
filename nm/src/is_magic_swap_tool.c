@@ -1,21 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_pow.c                                           :+:      :+:    :+:   */
+/*   is_magic_swap_tool.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/09/17 13:31:45 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 13:31:48 by jgounand         ###   ########.fr       */
+/*   Created: 2019/09/17 14:35:47 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/17 14:36:16 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/libft.h"
+#include "../inc/ft_nm.h"
 
-long long		ft_pow(int nb, int pow)
+int		should_swap_bytes(uint32_t magic)
 {
-	if (pow == 0)
-		return (1);
-	else
-		return (nb * ft_pow(nb, pow - 1));
+	return (magic == MH_CIGAM || magic == MH_CIGAM_64 || magic == FAT_CIGAM);
 }

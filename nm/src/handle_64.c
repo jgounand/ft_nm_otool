@@ -1,53 +1,66 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_64.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/09/17 14:08:51 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/17 14:16:21 by jgounand         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../inc/ft_nm.h"
 
-static char *ft_get_name_64(char type, struct nlist_64 list, t_inf_header *info, void *stringtable)
+static char		*ft_get_name_64(char type, struct nlist_64 list,
+		t_inf_header *info, void *stringtable)
 {
 	if (type == 'I')
 	{
-		if (stringtable + list.n_value < info->file || stringtable + list.n_value > info->file + info->size)
-		return ("bad string index");
+		if (stringtable + list.n_value < info->file ||
+				stringtable + list.n_value > info->file + info->size)
+			return ("bad string index");
 		else
-			return(stringtable + list.n_value);
+			return (stringtable + list.n_value);
 	}
-	if (stringtable + list.n_un.n_strx < info->file || stringtable + list.n_un.n_strx > info->file + info->size)
+	if (stringtable + list.n_un.n_strx < info->file ||
+			stringtable + list.n_un.n_strx > info->file + info->size)
 		return ("bad string index");
 	else
 		return (stringtable + list.n_un.n_strx);
 }
 
-static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header *info,struct symtab_command *sym)
+static t_list	*parse_symtab_64(struct nlist_64 *array, t_inf_header *info,
+		struct symtab_command *sym)
 {
 	uint32_t	i;
-	t_list	*new_lst;
-	t_symbol new;
-	char	*stringtable;
+	t_list		*new_lst;
+	t_symbol	new;
+	char		*stringtable;
 
 	i = 0;
 	new_lst = NULL;
 	stringtable = info->file + sym->stroff;
 	while (i < sym->nsyms)
 	{
-		if(array[i].n_type & N_STAB && ++i)
+		if (array[i].n_type & N_STAB && ++i)
 			continue;
-		if ((new.sym_type = ft_get_type_64(array[i], info)) == 1) // => free
+		if ((new.sym_type = ft_get_type_64(array[i], info)) == 1)
 			return (NULL);
-		new.sym_name = ft_get_name_64(new.sym_type, array[i], info, stringtable);
+		new.sym_name = ft_get_name_64(new.sym_type, array[i], info,
+				stringtable);
 		new.n_value = array[i].n_value;
-		//printf("value = %llu\t type %c\n",new.n_value,new.sym_type);
-		if (new.n_value == 1585267068851191808)
-		;//	exit (4);
 		new.cpu_type = 64;
-		ft_lstadd(&new_lst,ft_lstnew(&new,sizeof(t_symbol)));
+		ft_lstadd(&new_lst, ft_lstnew(&new, sizeof(t_symbol)));
 		i++;
 	}
 	return (new_lst);
 }
 
-static int	create_lst_64(struct symtab_command *sym, t_inf_header *info)
+static int		create_lst_64(struct symtab_command *sym, t_inf_header *info)
 {
 	struct nlist_64	*array;
-	t_list	*new_lst;
+	t_list			*new_lst;
 
 	if (info->swap)
 		swap_symtab_command(sym);
@@ -55,18 +68,17 @@ static int	create_lst_64(struct symtab_command *sym, t_inf_header *info)
 	if (addr_outof_range(info, array + sym->nsyms))
 		return (EXIT_FAILURE);
 	if (info->swap)
-		swap_all_nlist64(array,sym);
-	new_lst = parse_symtab_64(array,info,sym);
+		swap_all_nlist64(array, sym);
+	new_lst = parse_symtab_64(array, info, sym);
 	if (new_lst)
 	{
 		ft_lstsort(&new_lst, sort_lst_nm);
-		ft_lstiter(new_lst,show_list);
-		//free
+		ft_lstiter(new_lst, show_list);
 	}
 	return (EXIT_SUCCESS);
 }
 
-int	handle_64(t_inf_header *info)
+int				handle_64(t_inf_header *info)
 {
 	uint32_t				i;
 	struct mach_header_64	*header;
@@ -77,18 +89,15 @@ int	handle_64(t_inf_header *info)
 	lc = (void *)info->file + sizeof(*header);
 	if (info->swap)
 		swap_header(header, info->type);
-	if (check_load_command(header->ncmds,header,info,1))
-		return(EXIT_FAILURE);
+	if (check_load_command(header->ncmds, header, info, 1))
+		return (EXIT_FAILURE);
 	while (i++ < header->ncmds)
 	{
 		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SYMTAB)
-			return(create_lst_64((struct symtab_command *)lc, info));
-		lc = (void *) lc + lc->cmdsize;
+			return (create_lst_64((struct symtab_command *)lc, info));
+		lc = (void *)lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
 }
-
-
-
