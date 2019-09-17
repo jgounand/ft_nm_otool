@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 14:39:46 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 15:27:51 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 18:51:10 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,12 @@ static int	parse_av(int ac, char **av)
 	i = 1;
 	while (i < ac)
 	{
+		if (ac > 2)
+		{
+			ft_putchar('\n');
+			ft_putstr(av[i]);
+			ft_putchar('\n');
+		}
 		exit = open_mmmap_work_close(av[i]);
 		i++;
 	}

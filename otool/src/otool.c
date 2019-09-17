@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 11:18:36 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 12:46:21 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 19:00:06 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ static int	parse_av(int ac, char **av)
 	while (i < ac)
 	{
 		ft_putstr(av[i]);
-		ft_putstr(":\n");
 		if (!exit)
 			exit = open_mmmap_work_close(av[i]);
 		else

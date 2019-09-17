@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/16 16:16:56 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 12:46:11 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 18:31:52 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ static int	ft_show_64(struct section_64 *sec, t_inf_header info)
 		swap_section(sec, 1);
 	if (addr_outof_range(info, info.file + sec->offset + sec->size))
 		return (EXIT_FAILURE);
-	ft_putstr("Contents of (__TEXT,__text) section\n");
+	ft_putstr("\nContents of (__TEXT,__text) section\n");
 	while (i < sec->size)
 	{
 		ft_show_line(sec, info, i);

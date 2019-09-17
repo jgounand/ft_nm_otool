@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 14:08:51 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 14:16:21 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 17:40:53 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,9 @@ int				handle_64(t_inf_header *info)
 		if (addr_outof_range(info, lc))
 			return (EXIT_FAILURE);
 		if (lc->cmd == LC_SYMTAB)
+		{
 			return (create_lst_64((struct symtab_command *)lc, info));
+		}
 		lc = (void *)lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);

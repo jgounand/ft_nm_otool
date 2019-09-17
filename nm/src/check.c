@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 13:37:34 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 13:41:11 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 17:24:36 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,11 @@ int		check_load_command(uint32_t ncmds, void *header, t_inf_header *info,
 	short				modulo;
 
 	if (type64 && (modulo = 8))
-		lc = (void *)((struct mach_header_64 *)header) + sizeof(*header);
+		lc = (void *)((struct mach_header_64 *)header) +
+			sizeof(struct mach_header_64);
 	else if ((modulo = 4))
-		lc = (void *)((struct mach_header *)header) + sizeof(*header);
+		lc = (void *)((struct mach_header *)header) +
+			sizeof(struct mach_header);
 	i = 0;
 	while (i++ < ncmds)
 	{

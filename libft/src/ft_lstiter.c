@@ -6,7 +6,7 @@
 /*   By: jgounand <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/11/07 18:00:42 by jgounand          #+#    #+#             */
-/*   Updated: 2017/11/08 10:26:00 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 17:31:55 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,10 @@
 void	ft_lstiter(t_list *lst, void (*f)(t_list *elem))
 {
 	if (!lst || !f)
+	{
+		ft_putchar('a');
 		return ;
+	}
 	while (lst)
 	{
 		f(lst);
