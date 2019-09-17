@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/16 16:17:02 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/16 16:51:14 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 11:49:47 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static int	ft_show_32(struct section *sec, t_inf_header info)
 	ft_putstr("Contents of (__TEXT,__text) section\n");
 	while (i < sec->size)
 	{
-		ft_show_line(sec->addr, info.file + sec->offset, i, sec->size, 0);
+		ft_show_line(sec, info, i);
 		i += 16;
 	}
 	return (EXIT_SUCCESS);

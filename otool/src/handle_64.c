@@ -6,25 +6,25 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/16 16:16:56 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/16 16:59:35 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 12:46:11 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_otool.h"
 
-int			ft_show_64(struct section_64 *sec,t_inf_header info)
+static int	ft_show_64(struct section_64 *sec, t_inf_header info)
 {
 	uint32_t	i;
 
 	i = 0;
 	if (info.swap)
-		swap_section(sec,1);
+		swap_section(sec, 1);
 	if (addr_outof_range(info, info.file + sec->offset + sec->size))
 		return (EXIT_FAILURE);
 	ft_putstr("Contents of (__TEXT,__text) section\n");
 	while (i < sec->size)
 	{
-		ft_show_line(sec->addr,info.file + sec->offset,i,sec->size,64);
+		ft_show_line(sec, info, i);
 		i += 16;
 	}
 	return (EXIT_SUCCESS);
@@ -56,8 +56,8 @@ int			handle_64_ot(t_inf_header info)
 	lc = (void *)info.file + sizeof(*header);
 	if (info.swap)
 		swap_header(header, info.type);
-	if (check_load_command(header->ncmds,header,info,1))
-		return(EXIT_FAILURE);
+	if (check_load_command(header->ncmds, header, info, 1))
+		return (EXIT_FAILURE);
 	while (i++ < header->ncmds)
 	{
 		if (addr_outof_range(info, lc))
@@ -65,7 +65,7 @@ int			handle_64_ot(t_inf_header info)
 		if (lc->cmd == LC_SEGMENT_64)
 			if (handle_lc64(lc, info) == EXIT_FAILURE)
 				return (EXIT_FAILURE);
-		lc = (void *) lc + lc->cmdsize;
+		lc = (void *)lc + lc->cmdsize;
 	}
 	return (EXIT_SUCCESS);
 }

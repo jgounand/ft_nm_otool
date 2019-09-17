@@ -6,7 +6,7 @@
 /*   By: jgounand <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/11/07 18:00:05 by jgounand          #+#    #+#             */
-/*   Updated: 2017/11/08 14:15:10 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 13:09:52 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ char		*ft_itoa(int n)
 	return (result);
 }
 
-char	*ft_itoa_base(uint64_t value, int base)
+char	*ft_itoa_base(long long value, int base)
 {
 	long		i;
 	char	*nbr;

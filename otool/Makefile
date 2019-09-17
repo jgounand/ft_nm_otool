@@ -3,7 +3,7 @@ NAME =			ft_otool
 
 CC =			gcc
 
-FLAGS =			-Wall -Werror -Wextra -g
+FLAGS =			-Wall -Werror -Wextra
 
 HEADERS =		-I ./inc -I $(LIBFT_DIR)
 
@@ -40,9 +40,6 @@ $(OBJ_PATHS): $(OBJ_DIR)%.o: $(SRC_DIR)%.c ./inc/ft_otool.h
 	@$(CC) -c $(FLAGS) $(HEADERS) $< -o $@
 
 libft:
-	@Make -C ../libft/
-
-$(LIBFT) ./libft/:
 	@Make -C ../libft/
 
 clean:

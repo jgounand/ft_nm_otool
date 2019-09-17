@@ -6,11 +6,16 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/16 16:38:38 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/16 16:44:06 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/17 12:45:29 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_otool.h"
+
+int		should_swap_bytes(uint32_t magic)
+{
+	return (magic == MH_CIGAM || magic == MH_CIGAM_64 || magic == FAT_CIGAM);
+}
 
 int		check_load_command(uint32_t ncmds, void *header, t_inf_header info,
 		bool type64)

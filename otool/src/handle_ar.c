@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_ar.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/09/17 10:35:53 by jgounand          #+#    #+#             */
+/*   Updated: 2019/09/17 10:40:37 by jgounand         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../inc/ft_otool.h"
 
@@ -10,33 +21,31 @@ static void	print_archive_file_name(char *filename, char *symbol)
 	write(1, "):\n", 3);
 }
 
-int	handle_ar_ot(t_inf_header info)
+int			handle_ar_ot(t_inf_header info)
 {
 	struct ar_hdr	*header;
 	char			*str;
 	size_t			len;
-	void *tmp;
+	void			*tmp;
 
 	header = (struct ar_hdr *)(info.file + SARMAG);
-	tmp = info.file + SARMAG + ft_atoi(header->ar_size) + sizeof(struct ar_hdr);
+	tmp = info.file + SARMAG + ft_atoi(header->ar_size) +
+		sizeof(struct ar_hdr);
 	while (tmp)
 	{
 		header = (struct ar_hdr *)tmp;
-		if (ft_atoi(header->ar_size) <= 0)
-			return (EXIT_FAILURE);
 		str = tmp + sizeof(struct ar_hdr);
-		if (tmp + (ft_atoi(header->ar_size) + sizeof(struct ar_hdr)) > tmp + info.size)
+		if (ft_atoi(header->ar_size) <= 0 || tmp + (ft_atoi(header->ar_size) +
+					sizeof(struct ar_hdr)) > tmp + info.size)
 			return (EXIT_FAILURE);
 		print_archive_file_name(info.filename, str);
 		len = ft_strlen(str);
 		while (!str[len++])
 			;
-		if (otool(tmp + sizeof(struct ar_hdr) + len - 1, info.file -
-		(tmp +sizeof(struct ar_hdr) + len - 1) + info.size, info.filename) != 0)
+		if (otool(tmp + sizeof(*header) + len - 1, info.file - (tmp +
+				sizeof(*header) + len - 1) + info.size, info.filename) != 0)
 			return (EXIT_FAILURE);
 		tmp += ft_atoi(header->ar_size) + sizeof(struct ar_hdr);
 	}
-		return (EXIT_SUCCESS);
+	return (EXIT_SUCCESS);
 }
-
-
