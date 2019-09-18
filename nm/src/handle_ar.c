@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 14:17:05 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 19:06:42 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/18 09:32:22 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static void	print_archive_file_name(char *filename, char *symbol)
 	write(1, filename, ft_strlen(filename));
 	write(1, "(", 1);
 	write(1, symbol, ft_strlen(symbol));
-	write(1, "):\n", 1);
+	write(1, "):\n", 3);
 }
 
 int			handle_ar(t_inf_header *info)

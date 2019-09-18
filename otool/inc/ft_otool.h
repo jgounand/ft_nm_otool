@@ -6,7 +6,7 @@
 /*   By: jgounand <joris@gounand.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/17 13:05:05 by jgounand          #+#    #+#             */
-/*   Updated: 2019/09/17 13:07:33 by jgounand         ###   ########.fr       */
+/*   Updated: 2019/09/18 12:22:42 by jgounand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 # include <mach-o/loader.h>
 # include <mach-o/nlist.h>
 # include <mach-o/fat.h>
-# include <stdio.h>
 # include <fcntl.h>
 # include <stdlib.h>
 # include <sys/stat.h>
